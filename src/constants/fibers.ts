@@ -1,0 +1,26 @@
+export const FIBERS = [
+  { id: "cashmere", nameIT: "Cashmere", score: 98, tier: "premium" },
+  { id: "silk", nameIT: "Seta", score: 95, tier: "premium" },
+  { id: "merino_wool", nameIT: "Lana Merino", score: 92, tier: "premium" },
+  { id: "supima_cotton", nameIT: "Cotone Supima", score: 90, tier: "premium" },
+  { id: "pima_cotton", nameIT: "Cotone Pima", score: 90, tier: "premium" },
+  { id: "egyptian_cotton", nameIT: "Cotone Egiziano", score: 90, tier: "premium" },
+  { id: "linen", nameIT: "Lino", score: 88, tier: "alto" },
+  { id: "organic_cotton", nameIT: "Cotone Biologico", score: 85, tier: "alto" },
+  { id: "lyocell", nameIT: "Lyocell", score: 80, tier: "alto" },
+  { id: "tencel", nameIT: "Tencel", score: 80, tier: "alto" },
+  { id: "cotton", nameIT: "Cotone", score: 75, tier: "medio_alto" },
+  { id: "modal", nameIT: "Modal", score: 72, tier: "medio_alto" },
+  { id: "viscose", nameIT: "Viscosa", score: 55, tier: "medio" },
+  { id: "rayon", nameIT: "Rayon", score: 55, tier: "medio" },
+  { id: "nylon", nameIT: "Nylon", score: 50, tier: "medio" },
+  { id: "polyamide", nameIT: "Poliammide", score: 50, tier: "medio" },
+  { id: "recycled_polyester", nameIT: "Poliestere Riciclato", score: 48, tier: "medio_basso" },
+  { id: "polyester", nameIT: "Poliestere", score: 30, tier: "basso" },
+  { id: "acrylic", nameIT: "Acrilico", score: 20, tier: "basso" },
+  { id: "elastane", nameIT: "Elastan", score: 0, tier: "neutro" },
+  { id: "spandex", nameIT: "Spandex", score: 0, tier: "neutro" },
+] as const;
+
+export type FiberId = (typeof FIBERS)[number]["id"];
+export type FiberTier = (typeof FIBERS)[number]["tier"];
