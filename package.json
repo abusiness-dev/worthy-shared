@@ -2,8 +2,8 @@
   "name": "@worthy/shared",
   "version": "0.1.0",
   "description": "Shared types, scoring engine, constants, and validation for Worthy platform",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -21,6 +21,7 @@
     "dist"
   ],
   "scripts": {
+    "prepare": "npm run build",
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",

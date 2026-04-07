@@ -1,0 +1,24 @@
+{
+  "name": "@worthy/scraper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scrape": "tsx src/index.ts",
+    "scrape:zara": "tsx src/index.ts --brand zara",
+    "scrape:hm": "tsx src/index.ts --brand hm",
+    "scrape:uniqlo": "tsx src/index.ts --brand uniqlo",
+    "scrape:cos": "tsx src/index.ts --brand cos",
+    "scrape:massimo-dutti": "tsx src/index.ts --brand massimo-dutti"
+  },
+  "dependencies": {
+    "@worthy/shared": "file:../../",
+    "@supabase/supabase-js": "^2.49.0",
+    "playwright": "^1.50.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

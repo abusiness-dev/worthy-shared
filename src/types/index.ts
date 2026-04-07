@@ -10,6 +10,7 @@ export type {
   DuplicateStatus,
   AuditAction,
   PriceSource,
+  Gender,
 } from "./enums";
 
 export type { Composition, Product, ProductInsert, ProductUpdate, ProductWithRelations } from "./product";

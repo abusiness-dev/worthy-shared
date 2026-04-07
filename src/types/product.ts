@@ -1,4 +1,4 @@
-import type { VerificationStatus, Verdict } from "./enums";
+import type { Gender, VerificationStatus, Verdict } from "./enums";
 import type { Brand } from "./brand";
 import type { Category } from "./category";
 import type { MattiaReview } from "./review";
@@ -15,6 +15,7 @@ export interface Product {
   category_id: string;
   name: string;
   slug: string;
+  gender: Gender;
   price: number;
   composition: Composition[];
   country_of_production: string | null;
@@ -44,6 +45,7 @@ export interface ProductInsert {
   category_id: string;
   name: string;
   slug: string;
+  gender?: Gender;
   price: number;
   composition: Composition[];
   country_of_production?: string | null;
@@ -59,6 +61,7 @@ export interface ProductUpdate {
   brand_id?: string;
   category_id?: string;
   name?: string;
+  gender?: Gender;
   price?: number;
   composition?: Composition[];
   country_of_production?: string | null;

@@ -24,3 +24,5 @@ export type DuplicateStatus = "pending" | "confirmed_duplicate" | "not_duplicate
 export type AuditAction = "insert" | "update" | "delete";
 
 export type PriceSource = "user" | "scraper" | "affiliate_feed";
+
+export type Gender = "uomo" | "donna" | "unisex";
