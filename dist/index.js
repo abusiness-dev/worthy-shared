@@ -23,12 +23,18 @@ __export(index_exports, {
   BADGES: () => BADGES,
   CATEGORIES: () => CATEGORIES,
   DEFAULT_FIBER_SCORE: () => DEFAULT_FIBER_SCORE,
+  ELASTANE_FIBERS: () => ELASTANE_FIBERS,
+  ELASTANE_IGNORE_THRESHOLD: () => ELASTANE_IGNORE_THRESHOLD,
+  ELASTANE_LOW_THRESHOLD: () => ELASTANE_LOW_THRESHOLD,
+  ELASTANE_SCORE_HIGH: () => ELASTANE_SCORE_HIGH,
+  ELASTANE_SCORE_LOW: () => ELASTANE_SCORE_LOW,
   FIBERS: () => FIBERS,
+  FIBER_DESCRIPTIONS: () => FIBER_DESCRIPTIONS,
   FIBER_SCORES: () => FIBER_SCORES,
   LAUNCH_BRANDS: () => LAUNCH_BRANDS,
   MARKET_SEGMENTS: () => MARKET_SEGMENTS,
-  NEUTRAL_FIBERS: () => NEUTRAL_FIBERS,
-  NEUTRAL_THRESHOLD: () => NEUTRAL_THRESHOLD,
+  NAV_TABS: () => NAV_TABS,
+  ONBOARDING_STEPS: () => ONBOARDING_STEPS,
   POINTS: () => POINTS,
   RATE_LIMITS: () => RATE_LIMITS,
   VALIDATION: () => VALIDATION,
@@ -36,6 +42,10 @@ __export(index_exports, {
   calculateCompositionScore: () => calculateCompositionScore,
   calculateQPR: () => calculateQPR,
   calculateWorthyScore: () => calculateWorthyScore,
+  elastaneScore: () => elastaneScore,
+  getElastaneDescription: () => getElastaneDescription,
+  getFiberDescription: () => getFiberDescription,
+  isElastane: () => isElastane,
   isValidBarcode: () => isValidBarcode,
   isValidEAN13: () => isValidEAN13,
   isValidUPC: () => isValidUPC,
@@ -48,59 +58,85 @@ module.exports = __toCommonJS(index_exports);
 
 // src/scoring/fiberScores.ts
 var FIBER_SCORES = {
+  // Premium (85-100)
   cashmere: 98,
   seta: 95,
   silk: 95,
+  lana_merino: 92,
   "lana merino": 92,
   "merino wool": 92,
   merino: 92,
+  cotone_supima: 90,
   "cotone supima": 90,
-  "cotone pima": 90,
-  "cotone egiziano": 90,
   "supima cotton": 90,
+  cotone_pima: 90,
+  "cotone pima": 90,
   "pima cotton": 90,
+  cotone_egiziano: 90,
+  "cotone egiziano": 90,
   "egyptian cotton": 90,
   lino: 88,
   linen: 88,
+  cotone_biologico: 85,
   "cotone biologico": 85,
   "organic cotton": 85,
-  lyocell: 80,
-  tencel: 80,
-  cotone: 75,
-  cotton: 75,
-  modal: 72,
-  viscosa: 55,
-  rayon: 55,
-  viscose: 55,
-  nylon: 50,
-  nailon: 50,
-  polyamide: 50,
-  poliammide: 50,
-  "poliestere riciclato": 48,
-  "recycled polyester": 48,
-  poliestere: 30,
-  polyester: 30,
-  acrilico: 20,
-  acrylic: 20
+  // Alto (70-84)
+  lyocell: 82,
+  tencel: 82,
+  lana: 78,
+  wool: 78,
+  cotone: 72,
+  cotton: 72,
+  // Medio (50-69)
+  modal: 68,
+  cupro: 65,
+  viscosa: 52,
+  viscose: 52,
+  rayon: 52,
+  // Sintetici (0-49)
+  nylon: 45,
+  nailon: 45,
+  polyamide: 45,
+  poliammide: 45,
+  poliestere_riciclato: 42,
+  "poliestere riciclato": 42,
+  "recycled polyester": 42,
+  poliestere: 25,
+  polyester: 25,
+  acrilico: 15,
+  acrylic: 15
 };
-var NEUTRAL_FIBERS = ["elastane", "spandex", "elastan"];
-var NEUTRAL_THRESHOLD = 5;
+var ELASTANE_FIBERS = ["elastane", "elastan", "spandex"];
+var ELASTANE_IGNORE_THRESHOLD = 5;
+var ELASTANE_LOW_THRESHOLD = 10;
+var ELASTANE_SCORE_LOW = 40;
+var ELASTANE_SCORE_HIGH = 20;
 var DEFAULT_FIBER_SCORE = 50;
+function isElastane(fiber) {
+  return ELASTANE_FIBERS.includes(fiber.toLowerCase());
+}
+function elastaneScore(percentage) {
+  if (percentage <= ELASTANE_IGNORE_THRESHOLD) return null;
+  if (percentage <= ELASTANE_LOW_THRESHOLD) return ELASTANE_SCORE_LOW;
+  return ELASTANE_SCORE_HIGH;
+}
 
 // src/scoring/calculateComposition.ts
 function calculateCompositionScore(composition) {
   if (composition.length === 0) return 50;
-  const activeFibers = composition.filter((c) => {
-    const isNeutral = NEUTRAL_FIBERS.includes(c.fiber.toLowerCase());
-    return !(isNeutral && c.percentage <= NEUTRAL_THRESHOLD);
-  });
-  if (activeFibers.length === 0) return 50;
-  const totalPercentage = activeFibers.reduce((sum, c) => sum + c.percentage, 0);
+  const scored = composition.map((c) => {
+    const fiber = c.fiber.toLowerCase();
+    if (isElastane(fiber)) {
+      if (c.percentage <= ELASTANE_IGNORE_THRESHOLD) return null;
+      return { percentage: c.percentage, score: elastaneScore(c.percentage) };
+    }
+    const score = FIBER_SCORES[fiber] ?? DEFAULT_FIBER_SCORE;
+    return { percentage: c.percentage, score };
+  }).filter((x) => x !== null);
+  if (scored.length === 0) return 50;
+  const totalPercentage = scored.reduce((sum, c) => sum + c.percentage, 0);
   if (totalPercentage === 0) return 50;
-  const weightedSum = activeFibers.reduce((sum, c) => {
-    const score = FIBER_SCORES[c.fiber.toLowerCase()] ?? DEFAULT_FIBER_SCORE;
-    return sum + score * c.percentage;
-  }, 0);
+  const weightedSum = scored.reduce((sum, c) => sum + c.score * c.percentage, 0);
   return Math.round(Math.min(100, Math.max(0, weightedSum / totalPercentage)));
 }
 
@@ -125,14 +161,8 @@ function verdictFromScore(score) {
 
 // src/scoring/calculateWorthyScore.ts
 function calculateWorthyScore(params) {
-  const {
-    compositionScore,
-    qprScore,
-    fitScore = 50,
-    durabilityScore = 50,
-    mattiaAdjustment = 0
-  } = params;
-  const raw = compositionScore * 0.35 + qprScore * 0.3 + fitScore * 0.15 + durabilityScore * 0.15 + mattiaAdjustment;
+  const { compositionScore, qprScore, mattiaAdjustment = 0 } = params;
+  const raw = compositionScore * 0.7 + qprScore * 0.3 + mattiaAdjustment;
   const score = Math.round(Math.min(100, Math.max(0, raw)));
   return {
     score,
@@ -140,8 +170,6 @@ function calculateWorthyScore(params) {
     breakdown: {
       composition: compositionScore,
       qpr: qprScore,
-      fit: params.fitScore ?? null,
-      durability: params.durabilityScore ?? null,
       mattia_adjustment: mattiaAdjustment
     }
   };
@@ -157,17 +185,19 @@ var FIBERS = [
   { id: "egyptian_cotton", nameIT: "Cotone Egiziano", score: 90, tier: "premium" },
   { id: "linen", nameIT: "Lino", score: 88, tier: "alto" },
   { id: "organic_cotton", nameIT: "Cotone Biologico", score: 85, tier: "alto" },
-  { id: "lyocell", nameIT: "Lyocell", score: 80, tier: "alto" },
-  { id: "tencel", nameIT: "Tencel", score: 80, tier: "alto" },
-  { id: "cotton", nameIT: "Cotone", score: 75, tier: "medio_alto" },
-  { id: "modal", nameIT: "Modal", score: 72, tier: "medio_alto" },
-  { id: "viscose", nameIT: "Viscosa", score: 55, tier: "medio" },
-  { id: "rayon", nameIT: "Rayon", score: 55, tier: "medio" },
-  { id: "nylon", nameIT: "Nylon", score: 50, tier: "medio" },
-  { id: "polyamide", nameIT: "Poliammide", score: 50, tier: "medio" },
-  { id: "recycled_polyester", nameIT: "Poliestere Riciclato", score: 48, tier: "medio_basso" },
-  { id: "polyester", nameIT: "Poliestere", score: 30, tier: "basso" },
-  { id: "acrylic", nameIT: "Acrilico", score: 20, tier: "basso" },
+  { id: "lyocell", nameIT: "Lyocell", score: 82, tier: "alto" },
+  { id: "tencel", nameIT: "Tencel", score: 82, tier: "alto" },
+  { id: "wool", nameIT: "Lana", score: 78, tier: "alto" },
+  { id: "cotton", nameIT: "Cotone", score: 72, tier: "medio_alto" },
+  { id: "modal", nameIT: "Modal", score: 68, tier: "medio_alto" },
+  { id: "cupro", nameIT: "Cupro", score: 65, tier: "medio_alto" },
+  { id: "viscose", nameIT: "Viscosa", score: 52, tier: "medio" },
+  { id: "rayon", nameIT: "Rayon", score: 52, tier: "medio" },
+  { id: "nylon", nameIT: "Nylon", score: 45, tier: "medio" },
+  { id: "polyamide", nameIT: "Poliammide", score: 45, tier: "medio" },
+  { id: "recycled_polyester", nameIT: "Poliestere Riciclato", score: 42, tier: "medio_basso" },
+  { id: "polyester", nameIT: "Poliestere", score: 25, tier: "basso" },
+  { id: "acrylic", nameIT: "Acrilico", score: 15, tier: "basso" },
   { id: "elastane", nameIT: "Elastan", score: 0, tier: "neutro" },
   { id: "spandex", nameIT: "Spandex", score: 0, tier: "neutro" }
 ];
@@ -218,6 +248,7 @@ var BADGES = [
 
 // src/constants/categories.ts
 var CATEGORIES = [
+  // Categorie legacy (9 originali) — preservate per compatibilità con prodotti esistenti
   { slug: "t-shirt", name: "T-Shirt", icon: "\u{1F455}" },
   { slug: "felpe", name: "Felpe", icon: "\u{1F9E5}" },
   { slug: "jeans", name: "Jeans", icon: "\u{1F456}" },
@@ -226,7 +257,52 @@ var CATEGORIES = [
   { slug: "sneakers", name: "Sneakers", icon: "\u{1F45F}" },
   { slug: "camicie", name: "Camicie", icon: "\u{1F454}" },
   { slug: "intimo", name: "Intimo", icon: "\u{1EA72}" },
-  { slug: "accessori", name: "Accessori", icon: "\u{1F9E3}" }
+  { slug: "accessori", name: "Accessori", icon: "\u{1F9E3}" },
+  // T-shirt & Top
+  { slug: "t-shirt-basic", name: "T-shirt basic", icon: "\u{1F455}" },
+  { slug: "t-shirt-oversize", name: "T-shirt oversize", icon: "\u{1F455}" },
+  { slug: "polo", name: "Polo", icon: "\u{1F455}" },
+  { slug: "canotta", name: "Canotte", icon: "\u{1FA71}" },
+  { slug: "top-sportivo", name: "Top sportivi", icon: "\u{1F4AA}" },
+  // Camicie
+  { slug: "camicia", name: "Camicie", icon: "\u{1F454}" },
+  // Felpe & Maglioni
+  { slug: "felpa-cappuccio", name: "Felpe con cappuccio", icon: "\u{1F9E5}" },
+  { slug: "felpa-girocollo", name: "Felpe girocollo", icon: "\u{1F9E5}" },
+  { slug: "maglione", name: "Maglioni", icon: "\u{1F9F6}" },
+  { slug: "cardigan", name: "Cardigan", icon: "\u{1F9F6}" },
+  // Giacche
+  { slug: "bomber", name: "Bomber", icon: "\u{1F9E5}" },
+  { slug: "parka", name: "Parka", icon: "\u{1F9E5}" },
+  { slug: "blazer", name: "Blazer", icon: "\u{1F9E5}" },
+  { slug: "piumino", name: "Piumini", icon: "\u{1F9E5}" },
+  { slug: "giubbotto", name: "Giubbotti", icon: "\u{1F9E5}" },
+  // Pantaloni
+  { slug: "chinos", name: "Chinos", icon: "\u{1F456}" },
+  { slug: "cargo", name: "Cargo", icon: "\u{1F456}" },
+  { slug: "jogger", name: "Jogger", icon: "\u{1F456}" },
+  { slug: "pantaloni-eleganti", name: "Pantaloni eleganti", icon: "\u{1F456}" },
+  // Jeans
+  { slug: "jeans-slim", name: "Jeans slim", icon: "\u{1F456}" },
+  { slug: "jeans-regular", name: "Jeans regular", icon: "\u{1F456}" },
+  { slug: "jeans-wide", name: "Jeans wide leg", icon: "\u{1F456}" },
+  // Shorts
+  { slug: "shorts", name: "Shorts", icon: "\u{1FA73}" },
+  { slug: "shorts-sportivi", name: "Shorts sportivi", icon: "\u{1FA73}" },
+  // Intimo & calze (intimo slug già presente nelle legacy)
+  { slug: "calzini", name: "Calzini", icon: "\u{1F9E6}" },
+  // Scarpe (sneakers slug già presente nelle legacy)
+  { slug: "scarpe-eleganti", name: "Scarpe eleganti", icon: "\u{1F45E}" },
+  // Accessori
+  { slug: "cappelli", name: "Cappelli", icon: "\u{1F9E2}" },
+  { slug: "sciarpe", name: "Sciarpe", icon: "\u{1F9E3}" },
+  { slug: "cinture", name: "Cinture", icon: "\u{1F454}" },
+  { slug: "borse", name: "Borse", icon: "\u{1F45C}" },
+  // Costumi
+  { slug: "costume", name: "Costumi", icon: "\u{1FA71}" },
+  // Activewear
+  { slug: "leggings", name: "Leggings", icon: "\u{1F9B5}" },
+  { slug: "tuta", name: "Tute sportive", icon: "\u{1F3C3}" }
 ];
 
 // src/constants/brands.ts
@@ -323,6 +399,79 @@ var MARKET_SEGMENTS = [
   { id: "premium_fast", label: "Premium Fast Fashion" },
   { id: "mid_range", label: "Mid Range" }
 ];
+
+// src/constants/navigation.ts
+var NAV_TABS = ["search", "top-rated", "scan", "coach", "saved"];
+var ONBOARDING_STEPS = [
+  "welcome",
+  "value_prop_1",
+  "value_prop_2",
+  "brand_selection",
+  "category_selection",
+  "notifications",
+  "complete"
+];
+
+// src/constants/fiberDescriptions.ts
+var FIBER_DESCRIPTIONS = {
+  cashmere: "Fibra pregiata, morbidissima e calda. La migliore per maglieria.",
+  seta: "Fibra naturale lussuosa, traspirante e ipoallergenica.",
+  silk: "Fibra naturale lussuosa, traspirante e ipoallergenica.",
+  lana_merino: "Lana fine, termoregolante e non pizzica.",
+  "lana merino": "Lana fine, termoregolante e non pizzica.",
+  "merino wool": "Lana fine, termoregolante e non pizzica.",
+  merino: "Lana fine, termoregolante e non pizzica.",
+  cotone_supima: "Cotone a fibra lunga, morbidezza e durata superiori.",
+  "cotone supima": "Cotone a fibra lunga, morbidezza e durata superiori.",
+  "supima cotton": "Cotone a fibra lunga, morbidezza e durata superiori.",
+  cotone_pima: "Cotone a fibra lunga, morbidezza e durata superiori.",
+  "cotone pima": "Cotone a fibra lunga, morbidezza e durata superiori.",
+  "pima cotton": "Cotone a fibra lunga, morbidezza e durata superiori.",
+  cotone_egiziano: "Cotone a fibra lunga, morbidezza e durata superiori.",
+  "cotone egiziano": "Cotone a fibra lunga, morbidezza e durata superiori.",
+  "egyptian cotton": "Cotone a fibra lunga, morbidezza e durata superiori.",
+  lino: "Fibra naturale resistente, fresca e traspirante. Ideale per l'estate.",
+  linen: "Fibra naturale resistente, fresca e traspirante. Ideale per l'estate.",
+  cotone_biologico: "Cotone coltivato senza pesticidi, buona qualit\xE0 di base.",
+  "cotone biologico": "Cotone coltivato senza pesticidi, buona qualit\xE0 di base.",
+  "organic cotton": "Cotone coltivato senza pesticidi, buona qualit\xE0 di base.",
+  lyocell: "Semi-sintetica sostenibile, morbida e biodegradabile.",
+  tencel: "Semi-sintetica sostenibile, morbida e biodegradabile.",
+  lana: "Fibra naturale calda e isolante, durevole se lavata con cura.",
+  wool: "Fibra naturale calda e isolante, durevole se lavata con cura.",
+  cotone: "Fibra naturale di base, buona traspirabilit\xE0 ma qualit\xE0 variabile.",
+  cotton: "Fibra naturale di base, buona traspirabilit\xE0 ma qualit\xE0 variabile.",
+  modal: "Derivata dal legno, morbida e assorbente.",
+  cupro: "Semi-sintetica dal cotone, drappeggio simile alla seta.",
+  viscosa: "Semi-sintetica economica, processo chimico pesante.",
+  viscose: "Semi-sintetica economica, processo chimico pesante.",
+  rayon: "Semi-sintetica economica, processo chimico pesante.",
+  nylon: "Sintetico resistente ma scarsa traspirabilit\xE0.",
+  nailon: "Sintetico resistente ma scarsa traspirabilit\xE0.",
+  poliammide: "Sintetico resistente ma scarsa traspirabilit\xE0.",
+  polyamide: "Sintetico resistente ma scarsa traspirabilit\xE0.",
+  poliestere_riciclato: "Sintetico riciclato, meglio del vergine ma resta plastica.",
+  "poliestere riciclato": "Sintetico riciclato, meglio del vergine ma resta plastica.",
+  "recycled polyester": "Sintetico riciclato, meglio del vergine ma resta plastica.",
+  poliestere: "Sintetico economico, non traspira e genera microplastiche.",
+  polyester: "Sintetico economico, non traspira e genera microplastiche.",
+  acrilico: "Il peggior sintetico: pilling rapido, non traspira, non dura.",
+  acrylic: "Il peggior sintetico: pilling rapido, non traspira, non dura."
+};
+var ELASTANE_FIBERS2 = ["elastane", "elastan", "spandex"];
+function getElastaneDescription(percentage) {
+  if (percentage <= 5) {
+    return "Aggiunta minima per elasticit\xE0, non impatta la qualit\xE0.";
+  }
+  return "Percentuale elevata, pu\xF2 ridurre la durabilit\xE0 nel tempo.";
+}
+function getFiberDescription(fiber, percentage) {
+  const key = fiber.toLowerCase();
+  if (ELASTANE_FIBERS2.includes(key)) {
+    return getElastaneDescription(percentage);
+  }
+  return FIBER_DESCRIPTIONS[key] ?? null;
+}
 
 // src/validation/productValidation.ts
 var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -454,12 +603,18 @@ function isValidBarcode(code) {
   BADGES,
   CATEGORIES,
   DEFAULT_FIBER_SCORE,
+  ELASTANE_FIBERS,
+  ELASTANE_IGNORE_THRESHOLD,
+  ELASTANE_LOW_THRESHOLD,
+  ELASTANE_SCORE_HIGH,
+  ELASTANE_SCORE_LOW,
   FIBERS,
+  FIBER_DESCRIPTIONS,
   FIBER_SCORES,
   LAUNCH_BRANDS,
   MARKET_SEGMENTS,
-  NEUTRAL_FIBERS,
-  NEUTRAL_THRESHOLD,
+  NAV_TABS,
+  ONBOARDING_STEPS,
   POINTS,
   RATE_LIMITS,
   VALIDATION,
@@ -467,6 +622,10 @@ function isValidBarcode(code) {
   calculateCompositionScore,
   calculateQPR,
   calculateWorthyScore,
+  elastaneScore,
+  getElastaneDescription,
+  getFiberDescription,
+  isElastane,
   isValidBarcode,
   isValidEAN13,
   isValidUPC,

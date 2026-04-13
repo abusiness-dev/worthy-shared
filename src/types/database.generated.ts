@@ -472,6 +472,7 @@ export type Database = {
           country_of_production: string | null
           created_at: string
           ean_barcode: string | null
+          gender: Database["public"]["Enums"]["gender"]
           id: string
           is_active: boolean
           label_photo_url: string | null
@@ -501,6 +502,7 @@ export type Database = {
           country_of_production?: string | null
           created_at?: string
           ean_barcode?: string | null
+          gender?: Database["public"]["Enums"]["gender"]
           id?: string
           is_active?: boolean
           label_photo_url?: string | null
@@ -530,6 +532,7 @@ export type Database = {
           country_of_production?: string | null
           created_at?: string
           ean_barcode?: string | null
+          gender?: Database["public"]["Enums"]["gender"]
           id?: string
           is_active?: boolean
           label_photo_url?: string | null
@@ -738,6 +741,85 @@ export type Database = {
           },
         ]
       }
+      user_brand_preferences: {
+        Row: {
+          brand_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_brand_preferences_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brand_rankings"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "user_brand_preferences_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_brand_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_category_preferences: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_category_preferences_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_category_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_consents: {
         Row: {
           analytics_consent: boolean
@@ -792,6 +874,7 @@ export type Database = {
           id: string
           is_premium: boolean
           last_active_date: string | null
+          onboarding_completed: boolean
           points: number
           premium_expires_at: string | null
           products_contributed: number
@@ -810,6 +893,7 @@ export type Database = {
           id: string
           is_premium?: boolean
           last_active_date?: string | null
+          onboarding_completed?: boolean
           points?: number
           premium_expires_at?: string | null
           products_contributed?: number
@@ -828,6 +912,7 @@ export type Database = {
           id?: string
           is_premium?: boolean
           last_active_date?: string | null
+          onboarding_completed?: boolean
           points?: number
           premium_expires_at?: string | null
           products_contributed?: number
@@ -905,7 +990,15 @@ export type Database = {
     Enums: {
       audit_action: "insert" | "update" | "delete"
       duplicate_status: "pending" | "confirmed_duplicate" | "not_duplicate"
-      market_segment: "ultra_fast" | "fast" | "premium_fast" | "mid_range"
+      gender: "uomo" | "donna" | "unisex"
+      market_segment:
+        | "ultra_fast"
+        | "fast"
+        | "premium_fast"
+        | "mid_range"
+        | "fast_fashion"
+        | "premium"
+        | "maison"
       price_source: "user" | "scraper" | "affiliate_feed"
       report_reason:
         | "wrong_composition"
@@ -1048,7 +1141,16 @@ export const Constants = {
     Enums: {
       audit_action: ["insert", "update", "delete"],
       duplicate_status: ["pending", "confirmed_duplicate", "not_duplicate"],
-      market_segment: ["ultra_fast", "fast", "premium_fast", "mid_range"],
+      gender: ["uomo", "donna", "unisex"],
+      market_segment: [
+        "ultra_fast",
+        "fast",
+        "premium_fast",
+        "mid_range",
+        "fast_fashion",
+        "premium",
+        "maison",
+      ],
       price_source: ["user", "scraper", "affiliate_feed"],
       report_reason: [
         "wrong_composition",

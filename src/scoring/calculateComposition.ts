@@ -1,24 +1,35 @@
 import type { Composition } from "../types";
-import { FIBER_SCORES, NEUTRAL_FIBERS, NEUTRAL_THRESHOLD, DEFAULT_FIBER_SCORE } from "./fiberScores";
+import {
+  FIBER_SCORES,
+  DEFAULT_FIBER_SCORE,
+  isElastane,
+  elastaneScore,
+  ELASTANE_IGNORE_THRESHOLD,
+} from "./fiberScores";
 
 export function calculateCompositionScore(composition: Composition[]): number {
   if (composition.length === 0) return 50;
 
-  const activeFibers = composition.filter((c) => {
-    const isNeutral = NEUTRAL_FIBERS.includes(c.fiber.toLowerCase());
-    return !(isNeutral && c.percentage <= NEUTRAL_THRESHOLD);
-  });
+  const scored = composition
+    .map((c) => {
+      const fiber = c.fiber.toLowerCase();
 
-  if (activeFibers.length === 0) return 50;
+      if (isElastane(fiber)) {
+        if (c.percentage <= ELASTANE_IGNORE_THRESHOLD) return null;
+        return { percentage: c.percentage, score: elastaneScore(c.percentage)! };
+      }
 
-  const totalPercentage = activeFibers.reduce((sum, c) => sum + c.percentage, 0);
+      const score = FIBER_SCORES[fiber] ?? DEFAULT_FIBER_SCORE;
+      return { percentage: c.percentage, score };
+    })
+    .filter((x): x is { percentage: number; score: number } => x !== null);
 
+  if (scored.length === 0) return 50;
+
+  const totalPercentage = scored.reduce((sum, c) => sum + c.percentage, 0);
   if (totalPercentage === 0) return 50;
 
-  const weightedSum = activeFibers.reduce((sum, c) => {
-    const score = FIBER_SCORES[c.fiber.toLowerCase()] ?? DEFAULT_FIBER_SCORE;
-    return sum + score * c.percentage;
-  }, 0);
+  const weightedSum = scored.reduce((sum, c) => sum + c.score * c.percentage, 0);
 
   return Math.round(Math.min(100, Math.max(0, weightedSum / totalPercentage)));
 }

@@ -153,8 +153,21 @@ interface User {
     last_active_date: string | null;
     is_premium: boolean;
     premium_expires_at: string | null;
+    onboarding_completed: boolean;
     created_at: string;
     updated_at: string;
+}
+interface UserBrandPreference {
+    id: string;
+    user_id: string;
+    brand_id: string;
+    created_at: string;
+}
+interface UserCategoryPreference {
+    id: string;
+    user_id: string;
+    category_id: string;
+    created_at: string;
 }
 interface UserProfile extends Pick<User, "id" | "display_name" | "avatar_url" | "points" | "trust_level" | "products_contributed" | "streak_days" | "is_premium"> {
 }
@@ -259,8 +272,6 @@ interface AuditLogEntry {
 interface ScoreBreakdown {
     composition: number;
     qpr: number;
-    fit: number | null;
-    durability: number | null;
     mattia_adjustment: number;
 }
 interface WorthyScoreResult {
@@ -292,9 +303,14 @@ interface SavedComparison {
 }
 
 declare const FIBER_SCORES: Record<string, number>;
-declare const NEUTRAL_FIBERS: string[];
-declare const NEUTRAL_THRESHOLD = 5;
+declare const ELASTANE_FIBERS: string[];
+declare const ELASTANE_IGNORE_THRESHOLD = 5;
+declare const ELASTANE_LOW_THRESHOLD = 10;
+declare const ELASTANE_SCORE_LOW = 40;
+declare const ELASTANE_SCORE_HIGH = 20;
 declare const DEFAULT_FIBER_SCORE = 50;
+declare function isElastane(fiber: string): boolean;
+declare function elastaneScore(percentage: number): number | null;
 
 declare function calculateCompositionScore(composition: Composition[]): number;
 
@@ -303,8 +319,6 @@ declare function calculateQPR(compScore: number, price: number, avgCatScore: num
 interface WorthyScoreInput {
     compositionScore: number;
     qprScore: number;
-    fitScore?: number;
-    durabilityScore?: number;
     mattiaAdjustment?: number;
 }
 declare function calculateWorthyScore(params: WorthyScoreInput): WorthyScoreResult;
@@ -354,57 +368,67 @@ declare const FIBERS: readonly [{
 }, {
     readonly id: "lyocell";
     readonly nameIT: "Lyocell";
-    readonly score: 80;
+    readonly score: 82;
     readonly tier: "alto";
 }, {
     readonly id: "tencel";
     readonly nameIT: "Tencel";
-    readonly score: 80;
+    readonly score: 82;
+    readonly tier: "alto";
+}, {
+    readonly id: "wool";
+    readonly nameIT: "Lana";
+    readonly score: 78;
     readonly tier: "alto";
 }, {
     readonly id: "cotton";
     readonly nameIT: "Cotone";
-    readonly score: 75;
+    readonly score: 72;
     readonly tier: "medio_alto";
 }, {
     readonly id: "modal";
     readonly nameIT: "Modal";
-    readonly score: 72;
+    readonly score: 68;
+    readonly tier: "medio_alto";
+}, {
+    readonly id: "cupro";
+    readonly nameIT: "Cupro";
+    readonly score: 65;
     readonly tier: "medio_alto";
 }, {
     readonly id: "viscose";
     readonly nameIT: "Viscosa";
-    readonly score: 55;
+    readonly score: 52;
     readonly tier: "medio";
 }, {
     readonly id: "rayon";
     readonly nameIT: "Rayon";
-    readonly score: 55;
+    readonly score: 52;
     readonly tier: "medio";
 }, {
     readonly id: "nylon";
     readonly nameIT: "Nylon";
-    readonly score: 50;
+    readonly score: 45;
     readonly tier: "medio";
 }, {
     readonly id: "polyamide";
     readonly nameIT: "Poliammide";
-    readonly score: 50;
+    readonly score: 45;
     readonly tier: "medio";
 }, {
     readonly id: "recycled_polyester";
     readonly nameIT: "Poliestere Riciclato";
-    readonly score: 48;
+    readonly score: 42;
     readonly tier: "medio_basso";
 }, {
     readonly id: "polyester";
     readonly nameIT: "Poliestere";
-    readonly score: 30;
+    readonly score: 25;
     readonly tier: "basso";
 }, {
     readonly id: "acrylic";
     readonly nameIT: "Acrilico";
-    readonly score: 20;
+    readonly score: 15;
     readonly tier: "basso";
 }, {
     readonly id: "elastane";
@@ -494,6 +518,138 @@ declare const CATEGORIES: readonly [{
     readonly slug: "accessori";
     readonly name: "Accessori";
     readonly icon: "🧣";
+}, {
+    readonly slug: "t-shirt-basic";
+    readonly name: "T-shirt basic";
+    readonly icon: "👕";
+}, {
+    readonly slug: "t-shirt-oversize";
+    readonly name: "T-shirt oversize";
+    readonly icon: "👕";
+}, {
+    readonly slug: "polo";
+    readonly name: "Polo";
+    readonly icon: "👕";
+}, {
+    readonly slug: "canotta";
+    readonly name: "Canotte";
+    readonly icon: "🩱";
+}, {
+    readonly slug: "top-sportivo";
+    readonly name: "Top sportivi";
+    readonly icon: "💪";
+}, {
+    readonly slug: "camicia";
+    readonly name: "Camicie";
+    readonly icon: "👔";
+}, {
+    readonly slug: "felpa-cappuccio";
+    readonly name: "Felpe con cappuccio";
+    readonly icon: "🧥";
+}, {
+    readonly slug: "felpa-girocollo";
+    readonly name: "Felpe girocollo";
+    readonly icon: "🧥";
+}, {
+    readonly slug: "maglione";
+    readonly name: "Maglioni";
+    readonly icon: "🧶";
+}, {
+    readonly slug: "cardigan";
+    readonly name: "Cardigan";
+    readonly icon: "🧶";
+}, {
+    readonly slug: "bomber";
+    readonly name: "Bomber";
+    readonly icon: "🧥";
+}, {
+    readonly slug: "parka";
+    readonly name: "Parka";
+    readonly icon: "🧥";
+}, {
+    readonly slug: "blazer";
+    readonly name: "Blazer";
+    readonly icon: "🧥";
+}, {
+    readonly slug: "piumino";
+    readonly name: "Piumini";
+    readonly icon: "🧥";
+}, {
+    readonly slug: "giubbotto";
+    readonly name: "Giubbotti";
+    readonly icon: "🧥";
+}, {
+    readonly slug: "chinos";
+    readonly name: "Chinos";
+    readonly icon: "👖";
+}, {
+    readonly slug: "cargo";
+    readonly name: "Cargo";
+    readonly icon: "👖";
+}, {
+    readonly slug: "jogger";
+    readonly name: "Jogger";
+    readonly icon: "👖";
+}, {
+    readonly slug: "pantaloni-eleganti";
+    readonly name: "Pantaloni eleganti";
+    readonly icon: "👖";
+}, {
+    readonly slug: "jeans-slim";
+    readonly name: "Jeans slim";
+    readonly icon: "👖";
+}, {
+    readonly slug: "jeans-regular";
+    readonly name: "Jeans regular";
+    readonly icon: "👖";
+}, {
+    readonly slug: "jeans-wide";
+    readonly name: "Jeans wide leg";
+    readonly icon: "👖";
+}, {
+    readonly slug: "shorts";
+    readonly name: "Shorts";
+    readonly icon: "🩳";
+}, {
+    readonly slug: "shorts-sportivi";
+    readonly name: "Shorts sportivi";
+    readonly icon: "🩳";
+}, {
+    readonly slug: "calzini";
+    readonly name: "Calzini";
+    readonly icon: "🧦";
+}, {
+    readonly slug: "scarpe-eleganti";
+    readonly name: "Scarpe eleganti";
+    readonly icon: "👞";
+}, {
+    readonly slug: "cappelli";
+    readonly name: "Cappelli";
+    readonly icon: "🧢";
+}, {
+    readonly slug: "sciarpe";
+    readonly name: "Sciarpe";
+    readonly icon: "🧣";
+}, {
+    readonly slug: "cinture";
+    readonly name: "Cinture";
+    readonly icon: "👔";
+}, {
+    readonly slug: "borse";
+    readonly name: "Borse";
+    readonly icon: "👜";
+}, {
+    readonly slug: "costume";
+    readonly name: "Costumi";
+    readonly icon: "🩱";
+}, {
+    readonly slug: "leggings";
+    readonly name: "Leggings";
+    readonly icon: "🦵";
+}, {
+    readonly slug: "tuta";
+    readonly name: "Tute sportive";
+    readonly icon: "🏃";
 }];
 type CategorySlug = (typeof CATEGORIES)[number]["slug"];
 
@@ -642,6 +798,15 @@ declare const MARKET_SEGMENTS: readonly [{
     readonly label: "Mid Range";
 }];
 
+declare const NAV_TABS: readonly ["search", "top-rated", "scan", "coach", "saved"];
+type NavTab = (typeof NAV_TABS)[number];
+declare const ONBOARDING_STEPS: readonly ["welcome", "value_prop_1", "value_prop_2", "brand_selection", "category_selection", "notifications", "complete"];
+type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
+
+declare const FIBER_DESCRIPTIONS: Record<string, string>;
+declare function getElastaneDescription(percentage: number): string;
+declare function getFiberDescription(fiber: string, percentage: number): string | null;
+
 declare function validateProduct(data: Partial<ProductInsert>): {
     valid: boolean;
     errors: string[];
@@ -662,4 +827,4 @@ declare function isValidEAN13(code: string): boolean;
 declare function isValidUPC(code: string): boolean;
 declare function isValidBarcode(code: string): boolean;
 
-export { type AuditAction, type AuditLogEntry, BADGES, type Badge, type BadgeId, type Brand, type BrandWithStats, CATEGORIES, type Category, type CategorySlug, type Composition, DEFAULT_FIBER_SCORE, type DailyWorthy, type DuplicateStatus, FIBERS, FIBER_SCORES, type FiberId, type FiberTier, type Gender, LAUNCH_BRANDS, MARKET_SEGMENTS, type MarketSegment, type MattiaReview, NEUTRAL_FIBERS, NEUTRAL_THRESHOLD, POINTS, type PriceHistory, type PriceSource, type Product, type ProductDuplicate, type ProductInsert, type ProductReport, type ProductUpdate, type ProductVote, type ProductWithRelations, RATE_LIMITS, type ReportReason, type ReportStatus, type ReviewInsert, type SavedComparison, type SavedProduct, type ScanHistoryEntry, type ScanType, type ScoreBreakdown, type TrustLevel, type User, type UserBadge, type UserConsent, type UserProfile, type UserRole, VALIDATION, VERDICTS, type Verdict, type VerificationStatus, type VoteInsert, type WorthyScoreInput, type WorthyScoreResult, calculateCompositionScore, calculateQPR, calculateWorthyScore, isValidBarcode, isValidEAN13, isValidUPC, validateComposition, validatePrice, validateProduct, verdictFromScore };
+export { type AuditAction, type AuditLogEntry, BADGES, type Badge, type BadgeId, type Brand, type BrandWithStats, CATEGORIES, type Category, type CategorySlug, type Composition, DEFAULT_FIBER_SCORE, type DailyWorthy, type DuplicateStatus, ELASTANE_FIBERS, ELASTANE_IGNORE_THRESHOLD, ELASTANE_LOW_THRESHOLD, ELASTANE_SCORE_HIGH, ELASTANE_SCORE_LOW, FIBERS, FIBER_DESCRIPTIONS, FIBER_SCORES, type FiberId, type FiberTier, type Gender, LAUNCH_BRANDS, MARKET_SEGMENTS, type MarketSegment, type MattiaReview, NAV_TABS, type NavTab, ONBOARDING_STEPS, type OnboardingStep, POINTS, type PriceHistory, type PriceSource, type Product, type ProductDuplicate, type ProductInsert, type ProductReport, type ProductUpdate, type ProductVote, type ProductWithRelations, RATE_LIMITS, type ReportReason, type ReportStatus, type ReviewInsert, type SavedComparison, type SavedProduct, type ScanHistoryEntry, type ScanType, type ScoreBreakdown, type TrustLevel, type User, type UserBadge, type UserBrandPreference, type UserCategoryPreference, type UserConsent, type UserProfile, type UserRole, VALIDATION, VERDICTS, type Verdict, type VerificationStatus, type VoteInsert, type WorthyScoreInput, type WorthyScoreResult, calculateCompositionScore, calculateQPR, calculateWorthyScore, elastaneScore, getElastaneDescription, getFiberDescription, isElastane, isValidBarcode, isValidEAN13, isValidUPC, validateComposition, validatePrice, validateProduct, verdictFromScore };

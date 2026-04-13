@@ -4,27 +4,15 @@ import { verdictFromScore } from "./verdictFromScore";
 export interface WorthyScoreInput {
   compositionScore: number;
   qprScore: number;
-  fitScore?: number;
-  durabilityScore?: number;
   mattiaAdjustment?: number;
 }
 
+// Formula semplificata: 70% composizione + 30% QPR + Mattia (±5), clamp 0-100.
+// Le ex dimensioni vestibilità/durabilità sono state rimosse perché prive di dati reali.
 export function calculateWorthyScore(params: WorthyScoreInput): WorthyScoreResult {
-  const {
-    compositionScore,
-    qprScore,
-    fitScore = 50,
-    durabilityScore = 50,
-    mattiaAdjustment = 0,
-  } = params;
+  const { compositionScore, qprScore, mattiaAdjustment = 0 } = params;
 
-  const raw =
-    compositionScore * 0.35 +
-    qprScore * 0.30 +
-    fitScore * 0.15 +
-    durabilityScore * 0.15 +
-    mattiaAdjustment;
-
+  const raw = compositionScore * 0.7 + qprScore * 0.3 + mattiaAdjustment;
   const score = Math.round(Math.min(100, Math.max(0, raw)));
 
   return {
@@ -33,8 +21,6 @@ export function calculateWorthyScore(params: WorthyScoreInput): WorthyScoreResul
     breakdown: {
       composition: compositionScore,
       qpr: qprScore,
-      fit: params.fitScore ?? null,
-      durability: params.durabilityScore ?? null,
       mattia_adjustment: mattiaAdjustment,
     },
   };

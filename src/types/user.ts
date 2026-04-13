@@ -15,8 +15,23 @@ export interface User {
   last_active_date: string | null;
   is_premium: boolean;
   premium_expires_at: string | null;
+  onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface UserBrandPreference {
+  id: string;
+  user_id: string;
+  brand_id: string;
+  created_at: string;
+}
+
+export interface UserCategoryPreference {
+  id: string;
+  user_id: string;
+  category_id: string;
+  created_at: string;
 }
 
 export interface UserProfile
