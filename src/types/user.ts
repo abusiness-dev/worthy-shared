@@ -34,6 +34,29 @@ export interface UserCategoryPreference {
   created_at: string;
 }
 
+/**
+ * Profilo pubblico di un utente (vista user_public_profiles).
+ * Espone solo campi non sensibili — usare per leaderboard, profili pubblici, ecc.
+ * trust_level e is_premium rimossi per sicurezza (migration 20260417000005).
+ */
+export interface UserPublicProfile
+  extends Pick<
+    User,
+    | "id"
+    | "display_name"
+    | "avatar_url"
+    | "points"
+    | "products_contributed"
+    | "products_verified"
+    | "streak_days"
+    | "created_at"
+  > {}
+
+/**
+ * @deprecated Usare UserPublicProfile per profili di altri utenti.
+ * Mantenuto per compatibilita — trust_level e is_premium rimossi
+ * dalla vista pubblica e non piu disponibili per altri utenti.
+ */
 export interface UserProfile
   extends Pick<
     User,
@@ -41,8 +64,6 @@ export interface UserProfile
     | "display_name"
     | "avatar_url"
     | "points"
-    | "trust_level"
     | "products_contributed"
     | "streak_days"
-    | "is_premium"
   > {}

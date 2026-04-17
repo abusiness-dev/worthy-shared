@@ -15,7 +15,7 @@ export type {
 
 export type { Composition, Product, ProductInsert, ProductUpdate, ProductWithRelations } from "./product";
 export type { Brand, BrandWithStats } from "./brand";
-export type { User, UserProfile, UserBrandPreference, UserCategoryPreference } from "./user";
+export type { User, UserProfile, UserPublicProfile, UserBrandPreference, UserCategoryPreference } from "./user";
 export type { Category } from "./category";
 export type { ProductVote, VoteInsert } from "./vote";
 export type { MattiaReview, ReviewInsert } from "./review";
