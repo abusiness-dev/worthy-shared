@@ -27,13 +27,66 @@
 -- ============================================================
 SET ROLE postgres;
 
--- Inserisci utenti test
-INSERT INTO users (id, email, display_name, role, trust_level, points, is_premium)
+-- Fixtures auth.users PRIMA di public.users.
+-- public.users ha FK id -> auth.users(id), quindi un INSERT diretto
+-- fallisce con users_id_fkey violation. Inseriamo prima in auth.users;
+-- il trigger on_auth_user_created (vedi 20260408000001_auth_profile_avatars.sql,
+-- funzione handle_new_user) crea automaticamente la riga corrispondente
+-- in public.users con (id, email, display_name, avatar_url) — gli altri
+-- campi (role, trust_level, points, is_premium) prendono i DEFAULT della
+-- tabella. Li aggiorniamo via skip_user_protection piu sotto.
+INSERT INTO auth.users (
+  id, instance_id, aud, role, email,
+  encrypted_password, email_confirmed_at,
+  created_at, updated_at
+)
 VALUES
-  ('11111111-1111-1111-1111-111111111111', 'userx@test.com', 'User X', 'user', 'new', 100, false),
-  ('22222222-2222-2222-2222-222222222222', 'usery@test.com', 'User Y', 'user', 'new', 50, false),
-  ('33333333-3333-3333-3333-333333333333', 'admin@test.com', 'Admin', 'admin', 'trusted', 500, true)
+  ('11111111-1111-1111-1111-111111111111',
+   '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'userx@test.com',
+   '', now(), now(), now()),
+  ('22222222-2222-2222-2222-222222222222',
+   '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'usery@test.com',
+   '', now(), now(), now()),
+  ('33333333-3333-3333-3333-333333333333',
+   '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'admin@test.com',
+   '', now(), now(), now())
 ON CONFLICT (id) DO NOTHING;
+
+-- Imposta i campi privilegiati di public.users via bypass del trigger
+-- protect_user_privileged_fields (vedi 20260417000002). Il nome del GUC
+-- per users e worthy.skip_user_protection (diverso dal generico
+-- worthy.skip_protection usato da products).
+DO $$
+BEGIN
+  PERFORM set_config('worthy.skip_user_protection', 'true', true);
+
+  UPDATE users
+     SET display_name = 'User X',
+         role = 'user',
+         trust_level = 'new',
+         points = 100,
+         is_premium = false
+   WHERE id = '11111111-1111-1111-1111-111111111111';
+
+  UPDATE users
+     SET display_name = 'User Y',
+         role = 'user',
+         trust_level = 'new',
+         points = 50,
+         is_premium = false
+   WHERE id = '22222222-2222-2222-2222-222222222222';
+
+  UPDATE users
+     SET display_name = 'Admin',
+         role = 'admin',
+         trust_level = 'trusted',
+         points = 500,
+         is_premium = true
+   WHERE id = '33333333-3333-3333-3333-333333333333';
+END $$;
 
 -- Inserisci una categoria e un brand test
 INSERT INTO categories (id, name, slug, icon, avg_price, avg_composition_score)
@@ -297,12 +350,16 @@ SET request.jwt.claims = '{"role":""}';
 -- OUTPUT ATTESO: FALSE
 SELECT is_service_role_or_internal();
 
--- TEST 4.8: Session variable worthy.skip_protection
+-- TEST 4.8: Session variable worthy.skip_protection (bypass generico
+-- usato dal trigger products_protect_privileged, vedi 20260417000003).
+-- Per users il GUC distinto e worthy.skip_user_protection.
 SET request.jwt.claims = '{"role":"authenticated","sub":"11111111-1111-1111-1111-111111111111"}';
--- OUTPUT ATTESO: worthy.skip_protection non e settata → NULL (non bypassa)
+-- OUTPUT ATTESO: worthy.skip_protection non e settata → stringa vuota (non bypassa)
 SELECT current_setting('worthy.skip_protection', true);
--- Settala
-PERFORM set_config('worthy.skip_protection', 'true', true);
+-- Settala (PERFORM e sintassi plpgsql, va wrappato in DO block)
+DO $$ BEGIN
+  PERFORM set_config('worthy.skip_protection', 'true', true);
+END $$;
 -- OUTPUT ATTESO: 'true'
 SELECT current_setting('worthy.skip_protection', true);
 
@@ -409,37 +466,46 @@ WHERE id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 
 
 -- ============================================================
--- SEZIONE 6: INTEGRATION TESTS — Audit Log dei Blocchi
--- (Con dblink, il log persiste dopo RAISE EXCEPTION)
+-- SEZIONE 6: INTEGRATION TESTS — Blocco attacchi + audit log
+--
+-- STRATEGIA DI LOG (Opzione C): log_security_event emette RAISE WARNING
+-- con prefisso SECURITY_EVENT_BLOCKED nei Postgres logs (Supabase
+-- Dashboard → Logs → Postgres). NON scrive piu in audit_log: la query
+-- sulla tabella dopo i blocchi ritorna 0 righe per design. Per verificare
+-- i log strutturati: `supabase logs | grep SECURITY_EVENT_BLOCKED`.
+-- Upgrade a tabella audit_log strutturata: vedi
+-- docs/SECURITY_LOG_ALTERNATIVES.md.
 -- ============================================================
 
 SET ROLE postgres;
 
--- Pulisci audit log dei test precedenti
+-- Pulisci eventuali residui pre-esistenti in audit_log (non verranno
+-- riempiti da questi test, ma manteniamo la pulizia per idempotenza).
 DELETE FROM audit_log WHERE action = 'blocked';
 
 -- Simula User X
 SET ROLE authenticated;
 SET request.jwt.claims = '{"role":"authenticated","sub":"11111111-1111-1111-1111-111111111111"}';
 
--- TEST 6.1: Tentativo di escalation — deve fallire E loggare (persistente)
+-- TEST 6.1: Tentativo di escalation — deve fallire (trigger RAISE EXCEPTION).
+-- Il WARNING SECURITY_EVENT_BLOCKED finira nei Postgres logs.
 DO $$
 BEGIN
-  UPDATE users SET role = 'admin' WHERE id = '11111111-1111-1111-1111-111111111111';
-  RAISE EXCEPTION 'TEST FAILED: UPDATE should have been blocked';
-EXCEPTION
-  WHEN insufficient_privilege THEN
-    RAISE NOTICE 'TEST 6.1 PASSED: UPDATE correctly blocked with insufficient_privilege';
-  WHEN OTHERS THEN
-    RAISE NOTICE 'TEST 6.1 PASSED: UPDATE blocked with error: %', SQLERRM;
+  BEGIN
+    UPDATE users SET role = 'admin' WHERE id = '11111111-1111-1111-1111-111111111111';
+    -- Se arriviamo qui, il trigger NON ha bloccato: il test e fallito.
+    RAISE NOTICE 'TEST 6.1 FAILED: UPDATE was NOT blocked';
+  EXCEPTION
+    WHEN insufficient_privilege THEN
+      RAISE NOTICE 'TEST 6.1 PASSED — UPDATE correctly blocked (insufficient_privilege)';
+    WHEN OTHERS THEN
+      RAISE NOTICE 'TEST 6.1 PASSED — UPDATE correctly blocked by trigger (%)', SQLERRM;
+  END;
 END $$;
 
--- STEP 2: Verifica audit log (come superuser)
+-- STEP 2: Verifica che NON ci siano righe in audit_log (Opzione C).
 SET ROLE postgres;
--- OUTPUT ATTESO: almeno 1 riga con table_name='users', action='blocked'
--- NOTA: il log e persistente grazie a dblink (autonomous transaction).
--- Se dblink non funziona nel tuo ambiente, questa query ritorna 0 righe —
--- il che significa che l'attacco e comunque bloccato ma non loggato.
+-- OUTPUT ATTESO: 0 righe. Il log strutturato e nei Postgres logs, non qui.
 SELECT id, table_name, action, user_id,
        new_data->'blocked_fields' as blocked_fields,
        created_at
@@ -452,26 +518,26 @@ WHERE action = 'blocked'
 -- OUTPUT ATTESO: role = 'user' (NON 'admin')
 SELECT id, role FROM users WHERE id = '11111111-1111-1111-1111-111111111111';
 
--- TEST 6.2: Tentativo di modifica score prodotto — deve fallire E loggare
-DELETE FROM audit_log WHERE action = 'blocked' AND table_name = 'products';
-
+-- TEST 6.2: Tentativo di modifica score prodotto — deve fallire.
 SET ROLE authenticated;
 SET request.jwt.claims = '{"role":"authenticated","sub":"11111111-1111-1111-1111-111111111111"}';
 
 DO $$
 BEGIN
-  UPDATE products SET worthy_score = 100
-  WHERE id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
-  RAISE EXCEPTION 'TEST FAILED: UPDATE should have been blocked';
-EXCEPTION
-  WHEN insufficient_privilege THEN
-    RAISE NOTICE 'TEST 6.2 PASSED: Score modification correctly blocked';
-  WHEN OTHERS THEN
-    RAISE NOTICE 'TEST 6.2 PASSED: Score modification blocked with: %', SQLERRM;
+  BEGIN
+    UPDATE products SET worthy_score = 100
+    WHERE id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+    RAISE NOTICE 'TEST 6.2 FAILED: Score modification was NOT blocked';
+  EXCEPTION
+    WHEN insufficient_privilege THEN
+      RAISE NOTICE 'TEST 6.2 PASSED — Score modification correctly blocked (insufficient_privilege)';
+    WHEN OTHERS THEN
+      RAISE NOTICE 'TEST 6.2 PASSED — Score modification blocked by trigger (%)', SQLERRM;
+  END;
 END $$;
 
 SET ROLE postgres;
--- OUTPUT ATTESO: almeno 1 riga con table_name='products', action='blocked'
+-- OUTPUT ATTESO: 0 righe (Opzione C, vedi nota sopra).
 SELECT id, table_name, action, user_id,
        new_data->'blocked_fields' as blocked_fields,
        created_at
@@ -513,5 +579,20 @@ SELECT * FROM product_reports;
 -- ============================================================
 
 SET ROLE postgres;
--- I dati di test possono essere lasciati nel DB locale.
--- Per pulire: supabase db reset
+
+-- Reset del JWT claim. Se restasse quello di User X, il trigger
+-- trigger_audit_log() (AFTER DELETE su public.users) tenterebbe di scrivere
+-- audit_log.user_id = auth.uid() = 11111111, ma quell'utente viene appena
+-- eliminato dalla cascata → FK violation audit_log_user_id_fkey.
+-- Con claims vuoti, auth.uid() = NULL → audit_log.user_id = NULL (accettato).
+SET request.jwt.claims = '';
+
+-- Rimuovi le fixtures di test. La FK users_id_fkey e ON DELETE CASCADE
+-- (via auth.users → public.users), quindi eliminare da auth.users
+-- rimuove anche le righe corrispondenti in public.users. I prodotti/voti
+-- contribuiti dai test user restano orfani — pulirli separatamente oppure
+-- usare `supabase db reset` per un rollback completo.
+DELETE FROM auth.users
+WHERE email IN ('userx@test.com', 'usery@test.com', 'admin@test.com');
+
+-- Per reset completo del DB locale: supabase db reset

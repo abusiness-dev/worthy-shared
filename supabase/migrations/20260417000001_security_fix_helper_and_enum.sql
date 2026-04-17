@@ -8,10 +8,10 @@
 -- ============================================================
 
 -- Nuovo valore enum per loggare tentativi di modifica bloccati
+-- (mantenuto anche se nella strategia attuale log_security_event NON scrive
+-- piu in audit_log — l'enum e comunque riferito da altre parti del codice
+-- e potrebbe tornare utile se post-lancio si migra a pg_net + Edge Function.)
 ALTER TYPE audit_action ADD VALUE IF NOT EXISTS 'blocked';
-
--- dblink per autonomous transaction nel logging eventi di sicurezza
-CREATE EXTENSION IF NOT EXISTS dblink;
 
 -- ============================================================
 -- is_service_role_or_internal()
@@ -68,33 +68,33 @@ COMMENT ON FUNCTION is_service_role_or_internal IS
 -- ============================================================
 -- log_security_event()
 --
--- SCOPO: Logga un tentativo di modifica bloccato nell'audit_log.
+-- SCOPO: Emette un log strutturato di un tentativo di modifica bloccato.
 --
--- RATIONALE DBLINK: I trigger protettivi fanno RAISE EXCEPTION dopo
--- aver chiamato questa funzione. In PostgreSQL, RAISE EXCEPTION
--- rollbacka l'intera transazione, inclusi eventuali INSERT normali.
--- dblink apre una connessione loopback separata con la propria
--- transazione: l'INSERT via dblink committa indipendentemente e
--- sopravvive al rollback della transazione principale.
+-- STRATEGIA ATTUALE (Opzione C — solo log Postgres):
+--   Il log viene emesso via RAISE WARNING con un payload JSON consistente.
+--   Il messaggio finisce nei log PostgreSQL, visibili su:
+--     - Supabase Dashboard → Logs → Postgres (Cloud)
+--     - docker logs / supabase logs (locale)
 --
--- ATTENZIONE SUPABASE CLOUD: Il dblink loopback ('dbname=' || current_database())
--- NON e stato testato su Supabase Cloud al momento della scrittura
--- (2026-04-17). Su Supabase locale (supabase start) funziona perche
--- il container Docker usa trust auth per connessioni locali. Su Cloud,
--- il pg_hba.conf potrebbe richiedere credenziali esplicite.
+--   Format:  SECURITY_EVENT_BLOCKED {json-payload}
+--   Grep:    supabase logs | grep SECURITY_EVENT_BLOCKED
+--   Parse:   il payload dopo il prefisso e JSON valido
 --
--- SE DBLINK FALLISCE SISTEMATICAMENTE:
---   1. Verificare dashboard Supabase → Logs → Postgres per errori dblink
---   2. Il fallback RAISE WARNING logga l'errore nei log PostgreSQL
---      (visibili in dashboard → Logs → Postgres)
---   3. Un pg_notify best-effort viene emesso nel catch (rollbackato
---      dalla RAISE EXCEPTION del trigger, ma utile in contesti senza
---      exception come futuro refactor)
---   4. Migrare a pg_net se dblink non funziona. Vedere
---      docs/SECURITY_LOG_ALTERNATIVES.md per il piano B completo.
+-- RATIONALE: la PROTEZIONE (RAISE EXCEPTION nei trigger chiamanti) e
+-- indipendente dal log. L'attacco viene bloccato a prescindere; il log
+-- e solo per audit/forensics. Scegliendo RAISE WARNING evitiamo:
+--   - dblink loopback (richiede credenziali non disponibili ovunque)
+--   - pg_net + Edge Function (infrastruttura non necessaria al lancio)
+-- Trade-off: per query strutturate serve accedere ai Postgres logs,
+-- non a una tabella SQL. Accettabile al lancio.
 --
--- SECURITY DEFINER: necessario per aprire la connessione dblink
--- come function owner (postgres) con accesso locale.
+-- MIGRATION PATH (post-lancio se serve audit queryabile):
+--   vedere docs/SECURITY_LOG_ALTERNATIVES.md — migrare a pg_net +
+--   Edge Function che inserisce in audit_log via service_role.
+--
+-- SECURITY DEFINER: preservato per coerenza con i chiamanti (trigger
+-- che fanno PERFORM log_security_event) e per evitare che un futuro
+-- refactor verso INSERT in tabella venga bloccato da RLS.
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION log_security_event(
@@ -122,60 +122,23 @@ BEGIN
   END IF;
 
   payload := jsonb_build_object(
-    'blocked_fields', to_jsonb(p_blocked_fields),
-    'blocked_at', now()::text,
-    'reason', 'Attempted modification of protected fields'
+    'event_type', 'blocked',
+    'table', p_table,
+    'record_id', p_record_id,
+    'user_id', p_user_id,
+    'blocked_fields', p_blocked_fields,
+    'at', now()
   );
 
-  -- Usa dblink per INSERT in una transazione autonoma.
-  -- Il RAISE EXCEPTION nel trigger chiamante NON rollbacka questo INSERT.
-  -- La connessione loopback usa l'identita del function owner (postgres).
-  BEGIN
-    PERFORM dblink_exec(
-      'dbname=' || current_database(),
-      format(
-        $dblink$INSERT INTO public.audit_log
-          (table_name, record_id, action, user_id, new_data, created_at)
-        VALUES (%L, %L, 'blocked', %L, %L::jsonb, now())$dblink$,
-        p_table,
-        p_record_id,
-        p_user_id,
-        payload::text
-      )
-    );
-  EXCEPTION WHEN OTHERS THEN
-    -- Se dblink fallisce (connessione rifiutata, estensione mancante, ecc.)
-    -- non bloccare il trigger — il RAISE EXCEPTION protegge comunque.
-    -- Il log si perde, ma l'attacco e comunque bloccato.
-    RAISE WARNING 'log_security_event: dblink failed (audit entry lost): %', SQLERRM;
-
-    -- Best-effort: emetti NOTIFY con i dettagli dell'evento.
-    -- NOTA: questo NOTIFY verra rollbackato dalla RAISE EXCEPTION del
-    -- trigger chiamante (PostgreSQL committa NOTIFY solo al commit).
-    -- Tuttavia e utile in contesti dove il trigger non fa RAISE (futuro
-    -- refactor) o come segnale diagnostico durante lo sviluppo.
-    BEGIN
-      PERFORM pg_notify(
-        'security_event_audit_failed',
-        jsonb_build_object(
-          'table', p_table,
-          'record_id', p_record_id,
-          'user_id', p_user_id,
-          'blocked_fields', p_blocked_fields,
-          'error', SQLERRM,
-          'at', now()
-        )::text
-      );
-    EXCEPTION WHEN OTHERS THEN
-      -- Se anche pg_notify fallisce, non bloccare nulla.
-      NULL;
-    END;
-  END;
+  -- Format: SECURITY_EVENT_BLOCKED {json-payload}
+  -- Grep with: supabase logs | grep SECURITY_EVENT_BLOCKED
+  -- Migration path: see docs/SECURITY_LOG_ALTERNATIVES.md
+  RAISE WARNING 'SECURITY_EVENT_BLOCKED %', payload::text;
 END;
 $$;
 
 COMMENT ON FUNCTION log_security_event IS
-  'Logga un tentativo bloccato via dblink (autonomous transaction). Il log persiste anche se il trigger fa RAISE EXCEPTION. Action hardcoded a blocked.';
+  'Emette RAISE WARNING con payload JSON (prefisso SECURITY_EVENT_BLOCKED) nei log Postgres. Sopravvive a RAISE EXCEPTION del trigger chiamante perche i log Postgres non partecipano alla transazione. Upgrade path a pg_net + Edge Function in docs/SECURITY_LOG_ALTERNATIVES.md.';
 
 -- Restrizione accesso: nessun ruolo client puo chiamarla direttamente.
 REVOKE ALL ON FUNCTION log_security_event(text, uuid, uuid, text[]) FROM PUBLIC;
