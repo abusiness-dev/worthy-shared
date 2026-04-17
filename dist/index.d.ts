@@ -169,7 +169,19 @@ interface UserCategoryPreference {
     category_id: string;
     created_at: string;
 }
-interface UserProfile extends Pick<User, "id" | "display_name" | "avatar_url" | "points" | "trust_level" | "products_contributed" | "streak_days" | "is_premium"> {
+/**
+ * Profilo pubblico di un utente (vista user_public_profiles).
+ * Espone solo campi non sensibili — usare per leaderboard, profili pubblici, ecc.
+ * trust_level e is_premium rimossi per sicurezza (migration 20260417000005).
+ */
+interface UserPublicProfile extends Pick<User, "id" | "display_name" | "avatar_url" | "points" | "products_contributed" | "products_verified" | "streak_days" | "created_at"> {
+}
+/**
+ * @deprecated Usare UserPublicProfile per profili di altri utenti.
+ * Mantenuto per compatibilita — trust_level e is_premium rimossi
+ * dalla vista pubblica e non piu disponibili per altri utenti.
+ */
+interface UserProfile extends Pick<User, "id" | "display_name" | "avatar_url" | "points" | "products_contributed" | "streak_days"> {
 }
 
 interface ProductVote {
@@ -827,4 +839,4 @@ declare function isValidEAN13(code: string): boolean;
 declare function isValidUPC(code: string): boolean;
 declare function isValidBarcode(code: string): boolean;
 
-export { type AuditAction, type AuditLogEntry, BADGES, type Badge, type BadgeId, type Brand, type BrandWithStats, CATEGORIES, type Category, type CategorySlug, type Composition, DEFAULT_FIBER_SCORE, type DailyWorthy, type DuplicateStatus, ELASTANE_FIBERS, ELASTANE_IGNORE_THRESHOLD, ELASTANE_LOW_THRESHOLD, ELASTANE_SCORE_HIGH, ELASTANE_SCORE_LOW, FIBERS, FIBER_DESCRIPTIONS, FIBER_SCORES, type FiberId, type FiberTier, type Gender, LAUNCH_BRANDS, MARKET_SEGMENTS, type MarketSegment, type MattiaReview, NAV_TABS, type NavTab, ONBOARDING_STEPS, type OnboardingStep, POINTS, type PriceHistory, type PriceSource, type Product, type ProductDuplicate, type ProductInsert, type ProductReport, type ProductUpdate, type ProductVote, type ProductWithRelations, RATE_LIMITS, type ReportReason, type ReportStatus, type ReviewInsert, type SavedComparison, type SavedProduct, type ScanHistoryEntry, type ScanType, type ScoreBreakdown, type TrustLevel, type User, type UserBadge, type UserBrandPreference, type UserCategoryPreference, type UserConsent, type UserProfile, type UserRole, VALIDATION, VERDICTS, type Verdict, type VerificationStatus, type VoteInsert, type WorthyScoreInput, type WorthyScoreResult, calculateCompositionScore, calculateQPR, calculateWorthyScore, elastaneScore, getElastaneDescription, getFiberDescription, isElastane, isValidBarcode, isValidEAN13, isValidUPC, validateComposition, validatePrice, validateProduct, verdictFromScore };
+export { type AuditAction, type AuditLogEntry, BADGES, type Badge, type BadgeId, type Brand, type BrandWithStats, CATEGORIES, type Category, type CategorySlug, type Composition, DEFAULT_FIBER_SCORE, type DailyWorthy, type DuplicateStatus, ELASTANE_FIBERS, ELASTANE_IGNORE_THRESHOLD, ELASTANE_LOW_THRESHOLD, ELASTANE_SCORE_HIGH, ELASTANE_SCORE_LOW, FIBERS, FIBER_DESCRIPTIONS, FIBER_SCORES, type FiberId, type FiberTier, type Gender, LAUNCH_BRANDS, MARKET_SEGMENTS, type MarketSegment, type MattiaReview, NAV_TABS, type NavTab, ONBOARDING_STEPS, type OnboardingStep, POINTS, type PriceHistory, type PriceSource, type Product, type ProductDuplicate, type ProductInsert, type ProductReport, type ProductUpdate, type ProductVote, type ProductWithRelations, RATE_LIMITS, type ReportReason, type ReportStatus, type ReviewInsert, type SavedComparison, type SavedProduct, type ScanHistoryEntry, type ScanType, type ScoreBreakdown, type TrustLevel, type User, type UserBadge, type UserBrandPreference, type UserCategoryPreference, type UserConsent, type UserProfile, type UserPublicProfile, type UserRole, VALIDATION, VERDICTS, type Verdict, type VerificationStatus, type VoteInsert, type WorthyScoreInput, type WorthyScoreResult, calculateCompositionScore, calculateQPR, calculateWorthyScore, elastaneScore, getElastaneDescription, getFiberDescription, isElastane, isValidBarcode, isValidEAN13, isValidUPC, validateComposition, validatePrice, validateProduct, verdictFromScore };
