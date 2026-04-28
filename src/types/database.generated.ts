@@ -53,6 +53,13 @@ export type Database = {
             foreignKeyName: "audit_log_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -84,6 +91,43 @@ export type Database = {
           points_required?: number
         }
         Relationships: []
+      }
+      brand_certifications: {
+        Row: {
+          brand_id: string
+          certification_id: string
+        }
+        Insert: {
+          brand_id: string
+          certification_id: string
+        }
+        Update: {
+          brand_id?: string
+          certification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_certifications_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brand_rankings"
+            referencedColumns: ["brand_id"]
+          },
+          {
+            foreignKeyName: "brand_certifications_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_certifications_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certifications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       brands: {
         Row: {
@@ -133,6 +177,8 @@ export type Database = {
           avg_price: number
           icon: string
           id: string
+          median_composition_score: number
+          median_price: number
           name: string
           product_count: number
           slug: string
@@ -142,6 +188,8 @@ export type Database = {
           avg_price?: number
           icon: string
           id?: string
+          median_composition_score?: number
+          median_price?: number
           name: string
           product_count?: number
           slug: string
@@ -151,9 +199,100 @@ export type Database = {
           avg_price?: number
           icon?: string
           id?: string
+          median_composition_score?: number
+          median_price?: number
           name?: string
           product_count?: number
           slug?: string
+        }
+        Relationships: []
+      }
+      category_segment_aggregates: {
+        Row: {
+          category_id: string
+          market_segment: Database["public"]["Enums"]["market_segment"]
+          median_composition_score: number
+          median_price: number
+          product_count: number
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          market_segment: Database["public"]["Enums"]["market_segment"]
+          median_composition_score: number
+          median_price: number
+          product_count: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          market_segment?: Database["public"]["Enums"]["market_segment"]
+          median_composition_score?: number
+          median_price?: number
+          product_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_segment_aggregates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      certifications: {
+        Row: {
+          bonus_points: number
+          display_name: string
+          id: string
+          notes: string | null
+          scope: string
+        }
+        Insert: {
+          bonus_points: number
+          display_name: string
+          id: string
+          notes?: string | null
+          scope: string
+        }
+        Update: {
+          bonus_points?: number
+          display_name?: string
+          id?: string
+          notes?: string | null
+          scope?: string
+        }
+        Relationships: []
+      }
+      countries: {
+        Row: {
+          iso2: string
+          manufacturing_score: number
+          manufacturing_tier: number
+          name_en: string
+          name_it: string
+          notes: string | null
+          region: string
+        }
+        Insert: {
+          iso2: string
+          manufacturing_score: number
+          manufacturing_tier: number
+          name_en: string
+          name_it: string
+          notes?: string | null
+          region: string
+        }
+        Update: {
+          iso2?: string
+          manufacturing_score?: number
+          manufacturing_tier?: number
+          name_en?: string
+          name_it?: string
+          notes?: string | null
+          region?: string
         }
         Relationships: []
       }
@@ -283,6 +422,43 @@ export type Database = {
           },
         ]
       }
+      product_certifications: {
+        Row: {
+          certification_id: string
+          product_id: string
+        }
+        Insert: {
+          certification_id: string
+          product_id: string
+        }
+        Update: {
+          certification_id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_certifications_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_certifications_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_certifications_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "trending_products"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
       product_duplicates: {
         Row: {
           created_at: string
@@ -347,6 +523,13 @@ export type Database = {
             foreignKeyName: "product_duplicates_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_duplicates_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -394,6 +577,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "trending_products"
             referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "product_reports_user_id_fkey"
@@ -454,6 +644,13 @@ export type Database = {
             foreignKeyName: "product_votes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -470,7 +667,10 @@ export type Database = {
           composition: Json
           contributed_by: string | null
           country_of_production: string | null
+          country_of_production_iso2: string | null
           created_at: string
+          dyeing_iso2: string | null
+          dyeing_location: string | null
           ean_barcode: string | null
           gender: Database["public"]["Enums"]["gender"]
           id: string
@@ -480,14 +680,22 @@ export type Database = {
           photo_urls: string[]
           price: number
           scan_count: number
+          score_breakdown: Json | null
           score_composition: number
+          score_confidence: number | null
           score_durability: number | null
           score_fit: number | null
+          score_manufacturing: number | null
           score_qpr: number
+          score_sustainability: number | null
           slug: string
+          spinning_iso2: string | null
+          spinning_location: string | null
           updated_at: string
           verdict: Database["public"]["Enums"]["verdict"]
           verification_status: Database["public"]["Enums"]["verification_status"]
+          weaving_iso2: string | null
+          weaving_location: string | null
           worthy_score: number
         }
         Insert: {
@@ -500,7 +708,10 @@ export type Database = {
           composition: Json
           contributed_by?: string | null
           country_of_production?: string | null
+          country_of_production_iso2?: string | null
           created_at?: string
+          dyeing_iso2?: string | null
+          dyeing_location?: string | null
           ean_barcode?: string | null
           gender?: Database["public"]["Enums"]["gender"]
           id?: string
@@ -510,14 +721,22 @@ export type Database = {
           photo_urls?: string[]
           price: number
           scan_count?: number
+          score_breakdown?: Json | null
           score_composition?: number
+          score_confidence?: number | null
           score_durability?: number | null
           score_fit?: number | null
+          score_manufacturing?: number | null
           score_qpr?: number
+          score_sustainability?: number | null
           slug: string
+          spinning_iso2?: string | null
+          spinning_location?: string | null
           updated_at?: string
           verdict?: Database["public"]["Enums"]["verdict"]
           verification_status?: Database["public"]["Enums"]["verification_status"]
+          weaving_iso2?: string | null
+          weaving_location?: string | null
           worthy_score?: number
         }
         Update: {
@@ -530,7 +749,10 @@ export type Database = {
           composition?: Json
           contributed_by?: string | null
           country_of_production?: string | null
+          country_of_production_iso2?: string | null
           created_at?: string
+          dyeing_iso2?: string | null
+          dyeing_location?: string | null
           ean_barcode?: string | null
           gender?: Database["public"]["Enums"]["gender"]
           id?: string
@@ -540,14 +762,22 @@ export type Database = {
           photo_urls?: string[]
           price?: number
           scan_count?: number
+          score_breakdown?: Json | null
           score_composition?: number
+          score_confidence?: number | null
           score_durability?: number | null
           score_fit?: number | null
+          score_manufacturing?: number | null
           score_qpr?: number
+          score_sustainability?: number | null
           slug?: string
+          spinning_iso2?: string | null
+          spinning_location?: string | null
           updated_at?: string
           verdict?: Database["public"]["Enums"]["verdict"]
           verification_status?: Database["public"]["Enums"]["verification_status"]
+          weaving_iso2?: string | null
+          weaving_location?: string | null
           worthy_score?: number
         }
         Relationships: [
@@ -576,8 +806,43 @@ export type Database = {
             foreignKeyName: "products_contributed_by_fkey"
             columns: ["contributed_by"]
             isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_contributed_by_fkey"
+            columns: ["contributed_by"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_country_of_production_iso2_fkey"
+            columns: ["country_of_production_iso2"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["iso2"]
+          },
+          {
+            foreignKeyName: "products_dyeing_iso2_fkey"
+            columns: ["dyeing_iso2"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["iso2"]
+          },
+          {
+            foreignKeyName: "products_spinning_iso2_fkey"
+            columns: ["spinning_iso2"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["iso2"]
+          },
+          {
+            foreignKeyName: "products_weaving_iso2_fkey"
+            columns: ["weaving_iso2"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["iso2"]
           },
         ]
       }
@@ -604,6 +869,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "saved_comparisons_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "saved_comparisons_user_id_fkey"
             columns: ["user_id"]
@@ -646,6 +918,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "trending_products"
             referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "saved_products_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "saved_products_user_id_fkey"
@@ -703,6 +982,13 @@ export type Database = {
             foreignKeyName: "scan_history_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -730,6 +1016,13 @@ export type Database = {
             columns: ["badge_id"]
             isOneToOne: false
             referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_public_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -779,6 +1072,13 @@ export type Database = {
             foreignKeyName: "user_brand_preferences_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_brand_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -809,6 +1109,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_category_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_public_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -855,6 +1162,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_consents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_consents_user_id_fkey"
             columns: ["user_id"]
@@ -969,13 +1283,67 @@ export type Database = {
           },
         ]
       }
+      user_public_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          points: number | null
+          products_contributed: number | null
+          products_verified: number | null
+          streak_days: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          points?: number | null
+          products_contributed?: number | null
+          products_verified?: number | null
+          streak_days?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          points?: number | null
+          products_contributed?: number | null
+          products_verified?: number | null
+          streak_days?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_composition_score: { Args: { comp: Json }; Returns: number }
+      calculate_manufacturing_lens: {
+        Args: { p_product_id: string }
+        Returns: number
+      }
       calculate_qpr: { Args: { p_product_id: string }; Returns: number }
+      calculate_score_inline: {
+        Args: { p_category_id: string; p_composition: Json; p_price: number }
+        Returns: {
+          comp_score: number
+          final_verdict: Database["public"]["Enums"]["verdict"]
+          qpr_score: number
+          worthy_score: number
+        }[]
+      }
+      calculate_sustainability_lens: {
+        Args: { p_product_id: string }
+        Returns: number
+      }
       calculate_worthy_score: {
         Args: { p_product_id: string }
         Returns: number
+      }
+      calculate_worthy_score_v2: {
+        Args: { p_product_id: string }
+        Returns: Json
       }
       find_potential_duplicates: {
         Args: { p_brand_id: string; p_name: string; p_product_id: string }
@@ -984,21 +1352,37 @@ export type Database = {
           name_similarity: number
         }[]
       }
+      is_service_role_or_internal: { Args: never; Returns: boolean }
+      log_security_event: {
+        Args: {
+          p_blocked_fields: string[]
+          p_record_id: string
+          p_table: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      normalize_country_to_iso2: { Args: { raw: string }; Returns: string }
+      recalculate_brand_avg_scores: { Args: never; Returns: undefined }
+      recalculate_category_medians: {
+        Args: { p_category_id: string }
+        Returns: undefined
+      }
+      recalculate_category_segment_aggregates: {
+        Args: {
+          p_category_id: string
+          p_segment: Database["public"]["Enums"]["market_segment"]
+        }
+        Returns: undefined
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
-      audit_action: "insert" | "update" | "delete"
+      audit_action: "insert" | "update" | "delete" | "blocked"
       duplicate_status: "pending" | "confirmed_duplicate" | "not_duplicate"
       gender: "uomo" | "donna" | "unisex"
-      market_segment:
-        | "ultra_fast"
-        | "fast"
-        | "premium_fast"
-        | "mid_range"
-        | "fast_fashion"
-        | "premium"
-        | "maison"
+      market_segment: "ultra_fast" | "fast_fashion" | "premium" | "maison"
       price_source: "user" | "scraper" | "affiliate_feed"
       report_reason:
         | "wrong_composition"
@@ -1139,18 +1523,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      audit_action: ["insert", "update", "delete"],
+      audit_action: ["insert", "update", "delete", "blocked"],
       duplicate_status: ["pending", "confirmed_duplicate", "not_duplicate"],
       gender: ["uomo", "donna", "unisex"],
-      market_segment: [
-        "ultra_fast",
-        "fast",
-        "premium_fast",
-        "mid_range",
-        "fast_fashion",
-        "premium",
-        "maison",
-      ],
+      market_segment: ["ultra_fast", "fast_fashion", "premium", "maison"],
       price_source: ["user", "scraper", "affiliate_feed"],
       report_reason: [
         "wrong_composition",

@@ -27,6 +27,4 @@ export const VALIDATION = {
   composition_sum_tolerance: 1,
   vote_score_min: 1,
   vote_score_max: 10,
-  mattia_adjustment_min: -5,
-  mattia_adjustment_max: 5,
 } as const;

@@ -4,15 +4,15 @@ import { verdictFromScore } from "./verdictFromScore";
 export interface WorthyScoreInput {
   compositionScore: number;
   qprScore: number;
-  mattiaAdjustment?: number;
 }
 
-// Formula semplificata: 70% composizione + 30% QPR + Mattia (±5), clamp 0-100.
-// Le ex dimensioni vestibilità/durabilità sono state rimosse perché prive di dati reali.
+// Formula semplificata: 70% composizione + 30% QPR, clamp 0-100.
+// L'override Mattia adjustment è stato rimosso: il calcolo non dipende più da
+// mattia_reviews.score_adjustment (la colonna resta nel DB ma è ignorata).
 export function calculateWorthyScore(params: WorthyScoreInput): WorthyScoreResult {
-  const { compositionScore, qprScore, mattiaAdjustment = 0 } = params;
+  const { compositionScore, qprScore } = params;
 
-  const raw = compositionScore * 0.7 + qprScore * 0.3 + mattiaAdjustment;
+  const raw = compositionScore * 0.7 + qprScore * 0.3;
   const score = Math.round(Math.min(100, Math.max(0, raw)));
 
   return {
@@ -21,7 +21,6 @@ export function calculateWorthyScore(params: WorthyScoreInput): WorthyScoreResul
     breakdown: {
       composition: compositionScore,
       qpr: qprScore,
-      mattia_adjustment: mattiaAdjustment,
     },
   };
 }

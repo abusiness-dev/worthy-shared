@@ -1,8 +1,8 @@
 import type { MarketSegment } from "../types";
 
 export const MARKET_SEGMENTS = [
-  { id: "ultra_fast" as MarketSegment, label: "Ultra Fast Fashion" },
-  { id: "fast" as MarketSegment, label: "Fast Fashion" },
-  { id: "premium_fast" as MarketSegment, label: "Premium Fast Fashion" },
-  { id: "mid_range" as MarketSegment, label: "Mid Range" },
+  { id: "ultra_fast" as MarketSegment,   label: "Ultra Fast Fashion" },
+  { id: "fast_fashion" as MarketSegment, label: "Fast Fashion" },
+  { id: "premium" as MarketSegment,      label: "Premium" },
+  { id: "maison" as MarketSegment,       label: "Maison" },
 ] as const;

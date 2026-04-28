@@ -15,3 +15,9 @@ export {
   getElastaneDescription,
   getFiberDescription,
 } from "./fiberDescriptions";
+
+// Worthy Score v2 - lookup tables
+export { COUNTRIES, getCountry, manufacturingScoreFor } from "./countries";
+export type { Country, CountryIso2 } from "./countries";
+export { CERTIFICATIONS, getCertification, bonusFor } from "./certifications";
+export type { Certification, CertificationId, CertificationScope } from "./certifications";

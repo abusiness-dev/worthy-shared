@@ -32,36 +32,32 @@ describe("calculateWorthyScore", () => {
     expect(result.verdict).toBe("not_worthy");
   });
 
-  it("adjustment +5 su 100/100 → clamp a 100", () => {
+  it("100/100 → clamp a 100, verdict steal", () => {
     const result = calculateWorthyScore({
       compositionScore: 100,
       qprScore: 100,
-      mattiaAdjustment: 5,
     });
     expect(result.score).toBe(100);
     expect(result.verdict).toBe("steal");
   });
 
-  it("adjustment -5 su 0/0 → clamp a 0", () => {
+  it("0/0 → 0, verdict not_worthy", () => {
     const result = calculateWorthyScore({
       compositionScore: 0,
       qprScore: 0,
-      mattiaAdjustment: -5,
     });
     expect(result.score).toBe(0);
     expect(result.verdict).toBe("not_worthy");
   });
 
-  it("breakdown contiene solo composition, qpr, mattia_adjustment", () => {
+  it("breakdown contiene solo composition e qpr (Mattia rimosso)", () => {
     const result = calculateWorthyScore({
       compositionScore: 80,
       qprScore: 70,
-      mattiaAdjustment: 3,
     });
     expect(result.breakdown.composition).toBe(80);
     expect(result.breakdown.qpr).toBe(70);
-    expect(result.breakdown.mattia_adjustment).toBe(3);
-    // fit e durability non sono più parte del breakdown
+    expect((result.breakdown as Record<string, unknown>).mattia_adjustment).toBeUndefined();
     expect((result.breakdown as Record<string, unknown>).fit).toBeUndefined();
     expect((result.breakdown as Record<string, unknown>).durability).toBeUndefined();
   });

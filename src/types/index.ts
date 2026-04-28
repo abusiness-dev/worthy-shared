@@ -26,6 +26,14 @@ export type { DailyWorthy } from "./daily";
 export type { UserConsent } from "./consent";
 export type { ProductDuplicate } from "./duplicate";
 export type { AuditLogEntry } from "./audit";
-export type { ScoreBreakdown, WorthyScoreResult } from "./scoring";
+export type {
+  ScoreBreakdown,
+  WorthyScoreResult,
+  WorthyScoreLensName,
+  LensResult,
+  ScoreBreakdownV2,
+  WorthyScoreV2Input,
+  WorthyScoreV2Result,
+} from "./scoring";
 export type { PriceHistory } from "./price-history";
 export type { SavedProduct, SavedComparison } from "./saved";

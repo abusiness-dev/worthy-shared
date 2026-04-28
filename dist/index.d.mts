@@ -2,7 +2,7 @@ type VerificationStatus = "unverified" | "verified" | "mattia_reviewed";
 type Verdict = "steal" | "worthy" | "fair" | "meh" | "not_worthy";
 type TrustLevel = "new" | "contributor" | "trusted" | "banned";
 type UserRole = "user" | "moderator" | "admin";
-type MarketSegment = "ultra_fast" | "fast" | "premium_fast" | "mid_range";
+type MarketSegment = "ultra_fast" | "fast_fashion" | "premium" | "maison";
 type ScanType = "barcode" | "label" | "manual" | "search";
 type ReportReason = "wrong_composition" | "wrong_price" | "wrong_brand" | "duplicate" | "other";
 type ReportStatus = "pending" | "confirmed" | "rejected";
@@ -284,12 +284,56 @@ interface AuditLogEntry {
 interface ScoreBreakdown {
     composition: number;
     qpr: number;
-    mattia_adjustment: number;
 }
 interface WorthyScoreResult {
     score: number;
     verdict: Verdict;
     breakdown: ScoreBreakdown;
+}
+type WorthyScoreLensName = "composition" | "manufacturing" | "qpr" | "sustainability";
+interface LensResult {
+    score: number | null;
+    used: boolean;
+}
+declare const WORTHY_SCORE_V2_WEIGHTS: {
+    readonly composition: 0.5;
+    readonly manufacturing: 0.25;
+    readonly qpr: 0.2;
+    readonly sustainability: 0.05;
+};
+interface ScoreBreakdownV2 {
+    version: "v2.0";
+    lenses: Record<WorthyScoreLensName, LensResult>;
+    weights: typeof WORTHY_SCORE_V2_WEIGHTS;
+    confidence: number;
+    raw: number;
+    final: number;
+    verdict: Verdict;
+}
+interface WorthyScoreV2Input {
+    composition: {
+        fiber: string;
+        percentage: number;
+    }[];
+    price: number;
+    category: {
+        avgCompositionScore: number;
+        avgPrice: number;
+    };
+    manufacturing?: {
+        productionCountry?: string | null;
+        weavingCountry?: string | null;
+        spinningCountry?: string | null;
+        dyeingCountry?: string | null;
+    };
+    productCertifications?: string[];
+    brandCertifications?: string[];
+}
+interface WorthyScoreV2Result {
+    score: number;
+    verdict: Verdict;
+    confidence: number;
+    breakdown: ScoreBreakdownV2;
 }
 
 interface PriceHistory {
@@ -326,16 +370,36 @@ declare function elastaneScore(percentage: number): number | null;
 
 declare function calculateCompositionScore(composition: Composition[]): number;
 
-declare function calculateQPR(compScore: number, price: number, avgCatScore: number, avgCatPrice: number): number;
+declare function calculateQPR(compScore: number, price: number, refScore: number, refPrice: number): number;
 
 interface WorthyScoreInput {
     compositionScore: number;
     qprScore: number;
-    mattiaAdjustment?: number;
 }
 declare function calculateWorthyScore(params: WorthyScoreInput): WorthyScoreResult;
 
 declare function verdictFromScore(score: number): Verdict;
+
+declare function calculateWorthyScoreV2(input: WorthyScoreV2Input): WorthyScoreV2Result;
+
+declare function compositionLens(composition: Composition[]): number;
+
+declare function qprLens(compositionScore: number, price: number, refCompositionScore: number, refPrice: number): number;
+
+interface ManufacturingInput {
+    productionCountry?: string | null;
+    weavingCountry?: string | null;
+    spinningCountry?: string | null;
+    dyeingCountry?: string | null;
+    hasMadeInItaly100?: boolean;
+}
+declare function manufacturingLens(input: ManufacturingInput): number | null;
+
+interface SustainabilityLensInput {
+    productCertifications: string[];
+    brandCertifications: string[];
+}
+declare function sustainabilityLens(input: SustainabilityLensInput): number | null;
 
 declare const FIBERS: readonly [{
     readonly id: "cashmere";
@@ -792,8 +856,6 @@ declare const VALIDATION: {
     readonly composition_sum_tolerance: 1;
     readonly vote_score_min: 1;
     readonly vote_score_max: 10;
-    readonly mattia_adjustment_min: -5;
-    readonly mattia_adjustment_max: 5;
 };
 
 declare const MARKET_SEGMENTS: readonly [{
@@ -804,10 +866,10 @@ declare const MARKET_SEGMENTS: readonly [{
     readonly label: "Fast Fashion";
 }, {
     readonly id: MarketSegment;
-    readonly label: "Premium Fast Fashion";
+    readonly label: "Premium";
 }, {
     readonly id: MarketSegment;
-    readonly label: "Mid Range";
+    readonly label: "Maison";
 }];
 
 declare const NAV_TABS: readonly ["search", "top-rated", "scan", "coach", "saved"];
@@ -818,6 +880,30 @@ type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
 declare const FIBER_DESCRIPTIONS: Record<string, string>;
 declare function getElastaneDescription(percentage: number): string;
 declare function getFiberDescription(fiber: string, percentage: number): string | null;
+
+interface Country {
+    iso2: string;
+    name_it: string;
+    region: "EU" | "Asia" | "Americas" | "Africa" | "Oceania";
+    manufacturing_tier: 1 | 2 | 3 | 4;
+    manufacturing_score: number;
+}
+declare const COUNTRIES: Record<string, Country>;
+type CountryIso2 = keyof typeof COUNTRIES;
+declare function getCountry(iso2: string | null | undefined): Country | undefined;
+declare function manufacturingScoreFor(iso2: string | null | undefined): number | null;
+
+type CertificationScope = "fiber" | "process" | "brand" | "product" | "manufacturing";
+interface Certification {
+    id: string;
+    display_name: string;
+    scope: CertificationScope;
+    bonus_points: number;
+}
+declare const CERTIFICATIONS: Record<string, Certification>;
+type CertificationId = keyof typeof CERTIFICATIONS;
+declare function getCertification(id: string | null | undefined): Certification | undefined;
+declare function bonusFor(id: string | null | undefined): number;
 
 declare function validateProduct(data: Partial<ProductInsert>): {
     valid: boolean;
@@ -839,4 +925,4 @@ declare function isValidEAN13(code: string): boolean;
 declare function isValidUPC(code: string): boolean;
 declare function isValidBarcode(code: string): boolean;
 
-export { type AuditAction, type AuditLogEntry, BADGES, type Badge, type BadgeId, type Brand, type BrandWithStats, CATEGORIES, type Category, type CategorySlug, type Composition, DEFAULT_FIBER_SCORE, type DailyWorthy, type DuplicateStatus, ELASTANE_FIBERS, ELASTANE_IGNORE_THRESHOLD, ELASTANE_LOW_THRESHOLD, ELASTANE_SCORE_HIGH, ELASTANE_SCORE_LOW, FIBERS, FIBER_DESCRIPTIONS, FIBER_SCORES, type FiberId, type FiberTier, type Gender, LAUNCH_BRANDS, MARKET_SEGMENTS, type MarketSegment, type MattiaReview, NAV_TABS, type NavTab, ONBOARDING_STEPS, type OnboardingStep, POINTS, type PriceHistory, type PriceSource, type Product, type ProductDuplicate, type ProductInsert, type ProductReport, type ProductUpdate, type ProductVote, type ProductWithRelations, RATE_LIMITS, type ReportReason, type ReportStatus, type ReviewInsert, type SavedComparison, type SavedProduct, type ScanHistoryEntry, type ScanType, type ScoreBreakdown, type TrustLevel, type User, type UserBadge, type UserBrandPreference, type UserCategoryPreference, type UserConsent, type UserProfile, type UserPublicProfile, type UserRole, VALIDATION, VERDICTS, type Verdict, type VerificationStatus, type VoteInsert, type WorthyScoreInput, type WorthyScoreResult, calculateCompositionScore, calculateQPR, calculateWorthyScore, elastaneScore, getElastaneDescription, getFiberDescription, isElastane, isValidBarcode, isValidEAN13, isValidUPC, validateComposition, validatePrice, validateProduct, verdictFromScore };
+export { type AuditAction, type AuditLogEntry, BADGES, type Badge, type BadgeId, type Brand, type BrandWithStats, CATEGORIES, CERTIFICATIONS, COUNTRIES, type Category, type CategorySlug, type Certification, type CertificationId, type CertificationScope, type Composition, type Country, type CountryIso2, DEFAULT_FIBER_SCORE, type DailyWorthy, type DuplicateStatus, ELASTANE_FIBERS, ELASTANE_IGNORE_THRESHOLD, ELASTANE_LOW_THRESHOLD, ELASTANE_SCORE_HIGH, ELASTANE_SCORE_LOW, FIBERS, FIBER_DESCRIPTIONS, FIBER_SCORES, type FiberId, type FiberTier, type Gender, LAUNCH_BRANDS, type LensResult, MARKET_SEGMENTS, type ManufacturingInput, type MarketSegment, type MattiaReview, NAV_TABS, type NavTab, ONBOARDING_STEPS, type OnboardingStep, POINTS, type PriceHistory, type PriceSource, type Product, type ProductDuplicate, type ProductInsert, type ProductReport, type ProductUpdate, type ProductVote, type ProductWithRelations, RATE_LIMITS, type ReportReason, type ReportStatus, type ReviewInsert, type SavedComparison, type SavedProduct, type ScanHistoryEntry, type ScanType, type ScoreBreakdown, type ScoreBreakdownV2, type SustainabilityLensInput, type TrustLevel, type User, type UserBadge, type UserBrandPreference, type UserCategoryPreference, type UserConsent, type UserProfile, type UserPublicProfile, type UserRole, VALIDATION, VERDICTS, type Verdict, type VerificationStatus, type VoteInsert, type WorthyScoreInput, type WorthyScoreLensName, type WorthyScoreResult, type WorthyScoreV2Input, type WorthyScoreV2Result, bonusFor, calculateCompositionScore, calculateQPR, calculateWorthyScore, calculateWorthyScoreV2, compositionLens, elastaneScore, getCertification, getCountry, getElastaneDescription, getFiberDescription, isElastane, isValidBarcode, isValidEAN13, isValidUPC, manufacturingLens, manufacturingScoreFor, qprLens, sustainabilityLens, validateComposition, validatePrice, validateProduct, verdictFromScore };

@@ -22,6 +22,8 @@ var index_exports = {};
 __export(index_exports, {
   BADGES: () => BADGES,
   CATEGORIES: () => CATEGORIES,
+  CERTIFICATIONS: () => CERTIFICATIONS,
+  COUNTRIES: () => COUNTRIES,
   DEFAULT_FIBER_SCORE: () => DEFAULT_FIBER_SCORE,
   ELASTANE_FIBERS: () => ELASTANE_FIBERS,
   ELASTANE_IGNORE_THRESHOLD: () => ELASTANE_IGNORE_THRESHOLD,
@@ -39,16 +41,25 @@ __export(index_exports, {
   RATE_LIMITS: () => RATE_LIMITS,
   VALIDATION: () => VALIDATION,
   VERDICTS: () => VERDICTS,
+  bonusFor: () => bonusFor,
   calculateCompositionScore: () => calculateCompositionScore,
   calculateQPR: () => calculateQPR,
   calculateWorthyScore: () => calculateWorthyScore,
+  calculateWorthyScoreV2: () => calculateWorthyScoreV2,
+  compositionLens: () => compositionLens,
   elastaneScore: () => elastaneScore,
+  getCertification: () => getCertification,
+  getCountry: () => getCountry,
   getElastaneDescription: () => getElastaneDescription,
   getFiberDescription: () => getFiberDescription,
   isElastane: () => isElastane,
   isValidBarcode: () => isValidBarcode,
   isValidEAN13: () => isValidEAN13,
   isValidUPC: () => isValidUPC,
+  manufacturingLens: () => manufacturingLens,
+  manufacturingScoreFor: () => manufacturingScoreFor,
+  qprLens: () => qprLens,
+  sustainabilityLens: () => sustainabilityLens,
   validateComposition: () => validateComposition,
   validatePrice: () => validatePrice,
   validateProduct: () => validateProduct,
@@ -144,9 +155,9 @@ function calculateCompositionScore(composition) {
 function sigmoid(x) {
   return 100 / (1 + Math.exp(-0.05 * (x - 100)));
 }
-function calculateQPR(compScore, price, avgCatScore, avgCatPrice) {
-  if (price <= 0 || avgCatPrice <= 0 || avgCatScore <= 0) return 50;
-  const raw = compScore / price / (avgCatScore / avgCatPrice) * 100;
+function calculateQPR(compScore, price, refScore, refPrice) {
+  if (price <= 0 || refPrice <= 0 || refScore <= 0) return 50;
+  const raw = compScore / price / (refScore / refPrice) * 100;
   return Math.round(Math.min(100, Math.max(0, sigmoid(raw))));
 }
 
@@ -161,18 +172,235 @@ function verdictFromScore(score) {
 
 // src/scoring/calculateWorthyScore.ts
 function calculateWorthyScore(params) {
-  const { compositionScore, qprScore, mattiaAdjustment = 0 } = params;
-  const raw = compositionScore * 0.7 + qprScore * 0.3 + mattiaAdjustment;
+  const { compositionScore, qprScore } = params;
+  const raw = compositionScore * 0.7 + qprScore * 0.3;
   const score = Math.round(Math.min(100, Math.max(0, raw)));
   return {
     score,
     verdict: verdictFromScore(score),
     breakdown: {
       composition: compositionScore,
-      qpr: qprScore,
-      mattia_adjustment: mattiaAdjustment
+      qpr: qprScore
     }
   };
+}
+
+// src/types/scoring.ts
+var WORTHY_SCORE_V2_WEIGHTS = {
+  composition: 0.5,
+  manufacturing: 0.25,
+  qpr: 0.2,
+  sustainability: 0.05
+};
+
+// src/scoring/v2/lenses/compositionLens.ts
+function compositionLens(composition) {
+  return calculateCompositionScore(composition);
+}
+
+// src/scoring/v2/lenses/qprLens.ts
+function qprLens(compositionScore, price, refCompositionScore, refPrice) {
+  return calculateQPR(compositionScore, price, refCompositionScore, refPrice);
+}
+
+// src/constants/countries.ts
+var COUNTRIES = {
+  // Tier 1
+  IT: { iso2: "IT", name_it: "Italia", region: "EU", manufacturing_tier: 1, manufacturing_score: 95 },
+  JP: { iso2: "JP", name_it: "Giappone", region: "Asia", manufacturing_tier: 1, manufacturing_score: 92 },
+  CH: { iso2: "CH", name_it: "Svizzera", region: "EU", manufacturing_tier: 1, manufacturing_score: 90 },
+  // Tier 2
+  DE: { iso2: "DE", name_it: "Germania", region: "EU", manufacturing_tier: 2, manufacturing_score: 82 },
+  PT: { iso2: "PT", name_it: "Portogallo", region: "EU", manufacturing_tier: 2, manufacturing_score: 80 },
+  AT: { iso2: "AT", name_it: "Austria", region: "EU", manufacturing_tier: 2, manufacturing_score: 80 },
+  FR: { iso2: "FR", name_it: "Francia", region: "EU", manufacturing_tier: 2, manufacturing_score: 80 },
+  BE: { iso2: "BE", name_it: "Belgio", region: "EU", manufacturing_tier: 2, manufacturing_score: 78 },
+  NL: { iso2: "NL", name_it: "Paesi Bassi", region: "EU", manufacturing_tier: 2, manufacturing_score: 78 },
+  GB: { iso2: "GB", name_it: "Regno Unito", region: "EU", manufacturing_tier: 2, manufacturing_score: 78 },
+  US: { iso2: "US", name_it: "Stati Uniti", region: "Americas", manufacturing_tier: 2, manufacturing_score: 78 },
+  ES: { iso2: "ES", name_it: "Spagna", region: "EU", manufacturing_tier: 2, manufacturing_score: 78 },
+  DK: { iso2: "DK", name_it: "Danimarca", region: "EU", manufacturing_tier: 2, manufacturing_score: 75 },
+  SE: { iso2: "SE", name_it: "Svezia", region: "EU", manufacturing_tier: 2, manufacturing_score: 75 },
+  NO: { iso2: "NO", name_it: "Norvegia", region: "EU", manufacturing_tier: 2, manufacturing_score: 75 },
+  FI: { iso2: "FI", name_it: "Finlandia", region: "EU", manufacturing_tier: 2, manufacturing_score: 75 },
+  KR: { iso2: "KR", name_it: "Corea del Sud", region: "Asia", manufacturing_tier: 2, manufacturing_score: 75 },
+  TR: { iso2: "TR", name_it: "Turchia", region: "Asia", manufacturing_tier: 2, manufacturing_score: 72 },
+  RO: { iso2: "RO", name_it: "Romania", region: "EU", manufacturing_tier: 2, manufacturing_score: 70 },
+  HU: { iso2: "HU", name_it: "Ungheria", region: "EU", manufacturing_tier: 2, manufacturing_score: 70 },
+  CZ: { iso2: "CZ", name_it: "Repubblica Ceca", region: "EU", manufacturing_tier: 2, manufacturing_score: 70 },
+  PL: { iso2: "PL", name_it: "Polonia", region: "EU", manufacturing_tier: 2, manufacturing_score: 70 },
+  AU: { iso2: "AU", name_it: "Australia", region: "Oceania", manufacturing_tier: 2, manufacturing_score: 70 },
+  NZ: { iso2: "NZ", name_it: "Nuova Zelanda", region: "Oceania", manufacturing_tier: 2, manufacturing_score: 70 },
+  // Tier 3
+  TW: { iso2: "TW", name_it: "Taiwan", region: "Asia", manufacturing_tier: 3, manufacturing_score: 65 },
+  BG: { iso2: "BG", name_it: "Bulgaria", region: "EU", manufacturing_tier: 3, manufacturing_score: 60 },
+  VN: { iso2: "VN", name_it: "Vietnam", region: "Asia", manufacturing_tier: 3, manufacturing_score: 58 },
+  CN: { iso2: "CN", name_it: "Cina", region: "Asia", manufacturing_tier: 3, manufacturing_score: 55 },
+  TH: { iso2: "TH", name_it: "Thailandia", region: "Asia", manufacturing_tier: 3, manufacturing_score: 55 },
+  PE: { iso2: "PE", name_it: "Per\xF9", region: "Americas", manufacturing_tier: 3, manufacturing_score: 55 },
+  IN: { iso2: "IN", name_it: "India", region: "Asia", manufacturing_tier: 3, manufacturing_score: 52 },
+  MX: { iso2: "MX", name_it: "Messico", region: "Americas", manufacturing_tier: 3, manufacturing_score: 52 },
+  BR: { iso2: "BR", name_it: "Brasile", region: "Americas", manufacturing_tier: 3, manufacturing_score: 52 },
+  IL: { iso2: "IL", name_it: "Israele", region: "Asia", manufacturing_tier: 3, manufacturing_score: 50 },
+  TN: { iso2: "TN", name_it: "Tunisia", region: "Africa", manufacturing_tier: 3, manufacturing_score: 50 },
+  EG: { iso2: "EG", name_it: "Egitto", region: "Africa", manufacturing_tier: 3, manufacturing_score: 50 },
+  PK: { iso2: "PK", name_it: "Pakistan", region: "Asia", manufacturing_tier: 3, manufacturing_score: 50 },
+  MN: { iso2: "MN", name_it: "Mongolia", region: "Asia", manufacturing_tier: 3, manufacturing_score: 50 },
+  AG: { iso2: "AG", name_it: "Antigua e Barbuda", region: "Americas", manufacturing_tier: 3, manufacturing_score: 50 },
+  MY: { iso2: "MY", name_it: "Malesia", region: "Asia", manufacturing_tier: 3, manufacturing_score: 48 },
+  ID: { iso2: "ID", name_it: "Indonesia", region: "Asia", manufacturing_tier: 3, manufacturing_score: 45 },
+  MA: { iso2: "MA", name_it: "Marocco", region: "Africa", manufacturing_tier: 3, manufacturing_score: 45 },
+  IR: { iso2: "IR", name_it: "Iran", region: "Asia", manufacturing_tier: 3, manufacturing_score: 45 },
+  KZ: { iso2: "KZ", name_it: "Kazakistan", region: "Asia", manufacturing_tier: 3, manufacturing_score: 45 },
+  LK: { iso2: "LK", name_it: "Sri Lanka", region: "Asia", manufacturing_tier: 3, manufacturing_score: 45 },
+  PH: { iso2: "PH", name_it: "Filippine", region: "Asia", manufacturing_tier: 3, manufacturing_score: 42 },
+  // Tier 4
+  AF: { iso2: "AF", name_it: "Afghanistan", region: "Asia", manufacturing_tier: 4, manufacturing_score: 35 },
+  BD: { iso2: "BD", name_it: "Bangladesh", region: "Asia", manufacturing_tier: 4, manufacturing_score: 30 },
+  NP: { iso2: "NP", name_it: "Nepal", region: "Asia", manufacturing_tier: 4, manufacturing_score: 30 },
+  KH: { iso2: "KH", name_it: "Cambogia", region: "Asia", manufacturing_tier: 4, manufacturing_score: 25 },
+  ET: { iso2: "ET", name_it: "Etiopia", region: "Africa", manufacturing_tier: 4, manufacturing_score: 25 },
+  HT: { iso2: "HT", name_it: "Haiti", region: "Americas", manufacturing_tier: 4, manufacturing_score: 25 },
+  MM: { iso2: "MM", name_it: "Myanmar", region: "Asia", manufacturing_tier: 4, manufacturing_score: 20 }
+};
+function getCountry(iso2) {
+  if (!iso2) return void 0;
+  return COUNTRIES[iso2.toUpperCase()];
+}
+function manufacturingScoreFor(iso2) {
+  const country = getCountry(iso2);
+  return country ? country.manufacturing_score : null;
+}
+
+// src/scoring/v2/lenses/manufacturingLens.ts
+var STEP_WEIGHTS = {
+  production: 0.5,
+  // last substantial transformation: peso maggiore
+  weaving: 0.25,
+  spinning: 0.15,
+  dyeing: 0.1
+};
+function manufacturingLens(input) {
+  let weightedSum = 0;
+  let totalWeight = 0;
+  const addStep = (iso2, weight) => {
+    if (!iso2) return;
+    const score = manufacturingScoreFor(iso2);
+    if (score === null) return;
+    weightedSum += score * weight;
+    totalWeight += weight;
+  };
+  addStep(input.productionCountry, STEP_WEIGHTS.production);
+  addStep(input.weavingCountry, STEP_WEIGHTS.weaving);
+  addStep(input.spinningCountry, STEP_WEIGHTS.spinning);
+  addStep(input.dyeingCountry, STEP_WEIGHTS.dyeing);
+  if (totalWeight === 0) return null;
+  let result = weightedSum / totalWeight;
+  if (input.hasMadeInItaly100) {
+    result += 8;
+  }
+  return Math.min(100, Math.max(0, result));
+}
+
+// src/constants/certifications.ts
+var CERTIFICATIONS = {
+  // Fiber-level
+  gots: { id: "gots", display_name: "GOTS (Global Organic Textile Standard)", scope: "fiber", bonus_points: 15 },
+  rws: { id: "rws", display_name: "RWS (Responsible Wool Standard)", scope: "fiber", bonus_points: 12 },
+  gcs: { id: "gcs", display_name: "GCS (Good Cashmere Standard)", scope: "fiber", bonus_points: 12 },
+  grs_50: { id: "grs_50", display_name: "GRS 50%+ (Global Recycled Standard)", scope: "fiber", bonus_points: 10 },
+  rds: { id: "rds", display_name: "RDS (Responsible Down Standard)", scope: "fiber", bonus_points: 10 },
+  better_cotton_bci: { id: "better_cotton_bci", display_name: "Better Cotton Initiative (BCI)", scope: "fiber", bonus_points: 6 },
+  rcs: { id: "rcs", display_name: "RCS (Recycled Claim Standard)", scope: "fiber", bonus_points: 6 },
+  // Product-level
+  oeko_tex_100: { id: "oeko_tex_100", display_name: "OEKO-TEX Standard 100", scope: "product", bonus_points: 5 },
+  oeko_tex_made_in_green: { id: "oeko_tex_made_in_green", display_name: "OEKO-TEX Made in Green", scope: "product", bonus_points: 12 },
+  cradle_to_cradle_gold: { id: "cradle_to_cradle_gold", display_name: "Cradle to Cradle Gold", scope: "product", bonus_points: 14 },
+  cradle_to_cradle_silver: { id: "cradle_to_cradle_silver", display_name: "Cradle to Cradle Silver", scope: "product", bonus_points: 10 },
+  cradle_to_cradle_bronze: { id: "cradle_to_cradle_bronze", display_name: "Cradle to Cradle Bronze", scope: "product", bonus_points: 6 },
+  // Process-level
+  bluesign: { id: "bluesign", display_name: "Bluesign System Partner", scope: "process", bonus_points: 10 },
+  fair_trade: { id: "fair_trade", display_name: "Fair Trade Certified", scope: "process", bonus_points: 10 },
+  sa8000: { id: "sa8000", display_name: "SA8000 (Social Accountability)", scope: "process", bonus_points: 8 },
+  wrap: { id: "wrap", display_name: "WRAP (Worldwide Responsible Accredited Production)", scope: "process", bonus_points: 6 },
+  // Brand-level
+  b_corp_80plus: { id: "b_corp_80plus", display_name: "B Corp (80+ score)", scope: "brand", bonus_points: 8 },
+  "1_percent_for_planet": { id: "1_percent_for_planet", display_name: "1% for the Planet", scope: "brand", bonus_points: 4 },
+  // Manufacturing-level
+  made_in_italy_100: { id: "made_in_italy_100", display_name: "100% Made in Italy", scope: "manufacturing", bonus_points: 8 },
+  made_green_italy: { id: "made_green_italy", display_name: "Made Green in Italy", scope: "manufacturing", bonus_points: 10 }
+};
+function getCertification(id) {
+  if (!id) return void 0;
+  return CERTIFICATIONS[id];
+}
+function bonusFor(id) {
+  const cert = getCertification(id);
+  return cert ? cert.bonus_points : 0;
+}
+
+// src/scoring/v2/lenses/sustainabilityLens.ts
+function sustainabilityLens(input) {
+  const total = input.productCertifications.reduce((sum, id) => sum + bonusFor(id), 0) + input.brandCertifications.reduce((sum, id) => sum + bonusFor(id), 0);
+  if (total === 0) return null;
+  return Math.min(100, Math.max(0, total));
+}
+
+// src/scoring/v2/calculateWorthyScoreV2.ts
+var FULL_WEIGHTS_SUM = Object.values(WORTHY_SCORE_V2_WEIGHTS).reduce((a, b) => a + b, 0);
+function calculateWorthyScoreV2(input) {
+  const compositionScore = compositionLens(input.composition);
+  const hasMadeInItaly100 = (input.productCertifications ?? []).includes("made_in_italy_100");
+  const manufacturingScore = manufacturingLens({
+    productionCountry: input.manufacturing?.productionCountry,
+    weavingCountry: input.manufacturing?.weavingCountry,
+    spinningCountry: input.manufacturing?.spinningCountry,
+    dyeingCountry: input.manufacturing?.dyeingCountry,
+    hasMadeInItaly100
+  });
+  const qprScore = qprLens(
+    compositionScore,
+    input.price,
+    input.category.avgCompositionScore,
+    input.category.avgPrice
+  );
+  const sustainabilityScore = sustainabilityLens({
+    productCertifications: input.productCertifications ?? [],
+    brandCertifications: input.brandCertifications ?? []
+  });
+  let weightedSum = 0;
+  let usedWeight = 0;
+  weightedSum += compositionScore * WORTHY_SCORE_V2_WEIGHTS.composition;
+  usedWeight += WORTHY_SCORE_V2_WEIGHTS.composition;
+  if (manufacturingScore !== null) {
+    weightedSum += manufacturingScore * WORTHY_SCORE_V2_WEIGHTS.manufacturing;
+    usedWeight += WORTHY_SCORE_V2_WEIGHTS.manufacturing;
+  }
+  weightedSum += qprScore * WORTHY_SCORE_V2_WEIGHTS.qpr;
+  usedWeight += WORTHY_SCORE_V2_WEIGHTS.qpr;
+  if (sustainabilityScore !== null) {
+    weightedSum += sustainabilityScore * WORTHY_SCORE_V2_WEIGHTS.sustainability;
+    usedWeight += WORTHY_SCORE_V2_WEIGHTS.sustainability;
+  }
+  const raw = weightedSum / usedWeight;
+  const final = Math.round(Math.min(100, Math.max(0, raw)));
+  const verdict = verdictFromScore(final);
+  const confidence = Math.round(usedWeight / FULL_WEIGHTS_SUM * 100);
+  const breakdown = {
+    version: "v2.0",
+    lenses: {
+      composition: { score: compositionScore, used: true },
+      manufacturing: { score: manufacturingScore, used: manufacturingScore !== null },
+      qpr: { score: qprScore, used: true },
+      sustainability: { score: sustainabilityScore, used: sustainabilityScore !== null }
+    },
+    weights: WORTHY_SCORE_V2_WEIGHTS,
+    confidence,
+    raw: Math.round(raw * 100) / 100,
+    final,
+    verdict
+  };
+  return { score: final, verdict, confidence, breakdown };
 }
 
 // src/constants/fibers.ts
@@ -387,17 +615,15 @@ var VALIDATION = {
   composition_sum_target: 100,
   composition_sum_tolerance: 1,
   vote_score_min: 1,
-  vote_score_max: 10,
-  mattia_adjustment_min: -5,
-  mattia_adjustment_max: 5
+  vote_score_max: 10
 };
 
 // src/constants/marketSegments.ts
 var MARKET_SEGMENTS = [
   { id: "ultra_fast", label: "Ultra Fast Fashion" },
-  { id: "fast", label: "Fast Fashion" },
-  { id: "premium_fast", label: "Premium Fast Fashion" },
-  { id: "mid_range", label: "Mid Range" }
+  { id: "fast_fashion", label: "Fast Fashion" },
+  { id: "premium", label: "Premium" },
+  { id: "maison", label: "Maison" }
 ];
 
 // src/constants/navigation.ts
@@ -602,6 +828,8 @@ function isValidBarcode(code) {
 0 && (module.exports = {
   BADGES,
   CATEGORIES,
+  CERTIFICATIONS,
+  COUNTRIES,
   DEFAULT_FIBER_SCORE,
   ELASTANE_FIBERS,
   ELASTANE_IGNORE_THRESHOLD,
@@ -619,16 +847,25 @@ function isValidBarcode(code) {
   RATE_LIMITS,
   VALIDATION,
   VERDICTS,
+  bonusFor,
   calculateCompositionScore,
   calculateQPR,
   calculateWorthyScore,
+  calculateWorthyScoreV2,
+  compositionLens,
   elastaneScore,
+  getCertification,
+  getCountry,
   getElastaneDescription,
   getFiberDescription,
   isElastane,
   isValidBarcode,
   isValidEAN13,
   isValidUPC,
+  manufacturingLens,
+  manufacturingScoreFor,
+  qprLens,
+  sustainabilityLens,
   validateComposition,
   validatePrice,
   validateProduct,

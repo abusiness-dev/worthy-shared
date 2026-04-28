@@ -17,20 +17,29 @@ const PERCENTAGE_FIRST = /(\d{1,3})\s*%\s+([a-zA-ZÀ-ÿ\s]+)/g;
 const FIBER_FIRST = /([a-zA-ZÀ-ÿ\s]+?)\s+(\d{1,3})\s*%/g;
 const INLINE_PATTERN = /(\d{1,3})\s*%\s*([a-zA-ZÀ-ÿ]+(?:\s+[a-zA-ZÀ-ÿ]+)*)/g;
 
+// Header sezione "principale" (il tessuto esterno del capo)
+const MAIN_SECTION_RE =
+  /\b(?:body|shell|outer|esterno|tessuto\s+principale|main\s+fabric|composizione|composition|tessuto)\b\s*:?\s*([^]*?)(?=\b(?:fodera|lining|bordi|ribbing|trim|rever|interno|inside|cuff|collar)\b|$)/i;
+
+// Header sezione da IGNORARE (fodera, bordi, ecc.)
+const SECONDARY_SECTION_RE =
+  /\b(?:fodera|lining|bordi|ribbing|trim|rever|interno|inside|cuff|collar|imbottitura|padding)\b\s*:?\s*[^]*/i;
+
 export function parseComposition(text: string): ParsedComposition[] {
   if (!text || !text.trim()) return [];
 
-  // If there are section headers like "Shell:", "Lining:", "Body:", take only the first section
-  // or the "Body:" / "Shell:" section
   let workingText = text;
-  const sectionMatch = text.match(
-    /(?:body|shell|tessuto|composizione|composition)\s*:\s*([^.]+)/i
-  );
-  if (sectionMatch) {
-    workingText = sectionMatch[1];
+
+  // 1) Se trovo un header "principale" (Esterno/Shell/Tessuto principale/...) estraggo
+  //    solo quella sezione, fino al prossimo header secondario o fine testo.
+  const mainMatch = workingText.match(MAIN_SECTION_RE);
+  if (mainMatch && mainMatch[1]) {
+    workingText = mainMatch[1];
   } else {
-    // Take first section before a period or newline that starts a new section
-    const firstSection = text.split(/\.\s*[A-Z]|\n/)[0];
+    // 2) Rimuovi eventuali sezioni secondarie (fodera, bordi) anche senza header principale.
+    workingText = workingText.replace(SECONDARY_SECTION_RE, "");
+    // 3) Prima "sezione" prima di un punto + maiuscola o newline (fallback legacy).
+    const firstSection = workingText.split(/\.\s*[A-Z]|\n/)[0];
     if (firstSection) workingText = firstSection;
   }
 
@@ -51,7 +60,7 @@ export function parseComposition(text: string): ParsedComposition[] {
     results = matchAllFiberFirst(workingText, FIBER_FIRST);
   }
 
-  // Deduplicate by fiber name
+  // Deduplicate by fiber name (preserve first occurrence)
   const seen = new Set<string>();
   const deduped: ParsedComposition[] = [];
   for (const r of results) {
@@ -59,6 +68,24 @@ export function parseComposition(text: string): ParsedComposition[] {
       seen.add(r.fiber);
       deduped.push(r);
     }
+  }
+
+  // 4) Parsing incrementale: se la somma supera 101% (es. fodera catturata per sbaglio),
+  //    tieni solo le prime fibre fino a sommare ~100%.
+  const total = deduped.reduce((acc, f) => acc + f.percentage, 0);
+  if (total > 101) {
+    const truncated: ParsedComposition[] = [];
+    let running = 0;
+    for (const f of deduped) {
+      if (running >= 99) break;
+      truncated.push(f);
+      running += f.percentage;
+      if (running >= 99 && running <= 101) break;
+    }
+    // Usa truncated solo se arriva in range; altrimenti mantieni deduped (lascia fallire
+    // la validation a valle, che è meglio di un risultato dubbio silenziato).
+    const truncSum = truncated.reduce((acc, f) => acc + f.percentage, 0);
+    if (truncSum >= 99 && truncSum <= 101) return truncated;
   }
 
   return deduped;

@@ -6,7 +6,7 @@ export type TrustLevel = "new" | "contributor" | "trusted" | "banned";
 
 export type UserRole = "user" | "moderator" | "admin";
 
-export type MarketSegment = "ultra_fast" | "fast" | "premium_fast" | "mid_range";
+export type MarketSegment = "ultra_fast" | "fast_fashion" | "premium" | "maison";
 
 export type ScanType = "barcode" | "label" | "manual" | "search";
 
