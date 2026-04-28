@@ -658,6 +658,7 @@ export type Database = {
       }
       products: {
         Row: {
+          additional_eans: string[]
           affiliate_url: string | null
           brand_id: string
           care_instructions: string | null
@@ -699,6 +700,7 @@ export type Database = {
           worthy_score: number
         }
         Insert: {
+          additional_eans?: string[]
           affiliate_url?: string | null
           brand_id: string
           care_instructions?: string | null
@@ -740,6 +742,7 @@ export type Database = {
           worthy_score?: number
         }
         Update: {
+          additional_eans?: string[]
           affiliate_url?: string | null
           brand_id?: string
           care_instructions?: string | null
