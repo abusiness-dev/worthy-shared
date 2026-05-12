@@ -15,7 +15,7 @@ const STEP_WEIGHTS = {
   dyeing:     0.10,
 } as const;
 
-// Manufacturing lens (peso 15% del Worthy Score v2).
+// Manufacturing lens (peso 25% del Worthy Score v2).
 // Media pesata sui 4 step di filiera: country_of_production conta più di
 // weaving/spinning/dyeing (è la "last substantial transformation" e firma il
 // Made in...). Bonus +8 se il prodotto ha la certificazione "100% Made in Italy".

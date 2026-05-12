@@ -18,20 +18,18 @@ export interface WorthyScoreResult {
 export type WorthyScoreLensName =
   | "composition"
   | "manufacturing"
-  | "qpr"
-  | "sustainability";
+  | "qpr";
 
 export interface LensResult {
   score: number | null;  // null = lente esclusa
   used: boolean;         // score !== null
 }
 
-// Pesi delle 4 lenti finali (somma 1.0).
+// Pesi delle 3 lenti finali (somma 1.0).
 export const WORTHY_SCORE_V2_WEIGHTS = {
   composition:    0.50,
   manufacturing:  0.25,
-  qpr:            0.20,
-  sustainability: 0.05,
+  qpr:            0.25,
 } as const;
 
 export interface ScoreBreakdownV2 {
@@ -57,8 +55,7 @@ export interface WorthyScoreV2Input {
     spinningCountry?: string | null;
     dyeingCountry?: string | null;
   };
-  productCertifications?: string[];       // certification ids (product-level)
-  brandCertifications?: string[];         // certification ids (brand-level)
+  productCertifications?: string[];       // certification ids (product-level); usato per il bonus made_in_italy_100 nella lente manufacturing
 }
 
 export interface WorthyScoreV2Result {

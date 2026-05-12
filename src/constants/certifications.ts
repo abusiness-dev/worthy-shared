@@ -1,4 +1,7 @@
-// Anagrafica certificazioni tessili per la sustainability_lens del Worthy Score v2.
+// Anagrafica certificazioni tessili usata da UI brand-transparency e badge prodotto.
+// Lo scoring non legge più questi bonus_points dopo la rimozione della lente
+// sustainability (v2 a 3 lenti). L'unica certificazione che ancora muove lo
+// score è "made_in_italy_100", che alimenta il bonus +8 della lente manufacturing.
 // Fonte di verità in produzione: tabella `certifications` (vedi migration 20260427000003).
 // Allineato ai seed SQL.
 

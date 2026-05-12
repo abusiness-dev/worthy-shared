@@ -59,7 +59,6 @@ __export(index_exports, {
   manufacturingLens: () => manufacturingLens,
   manufacturingScoreFor: () => manufacturingScoreFor,
   qprLens: () => qprLens,
-  sustainabilityLens: () => sustainabilityLens,
   validateComposition: () => validateComposition,
   validatePrice: () => validatePrice,
   validateProduct: () => validateProduct,
@@ -189,8 +188,7 @@ function calculateWorthyScore(params) {
 var WORTHY_SCORE_V2_WEIGHTS = {
   composition: 0.5,
   manufacturing: 0.25,
-  qpr: 0.2,
-  sustainability: 0.05
+  qpr: 0.25
 };
 
 // src/scoring/v2/lenses/compositionLens.ts
@@ -302,50 +300,6 @@ function manufacturingLens(input) {
   return Math.min(100, Math.max(0, result));
 }
 
-// src/constants/certifications.ts
-var CERTIFICATIONS = {
-  // Fiber-level
-  gots: { id: "gots", display_name: "GOTS (Global Organic Textile Standard)", scope: "fiber", bonus_points: 15 },
-  rws: { id: "rws", display_name: "RWS (Responsible Wool Standard)", scope: "fiber", bonus_points: 12 },
-  gcs: { id: "gcs", display_name: "GCS (Good Cashmere Standard)", scope: "fiber", bonus_points: 12 },
-  grs_50: { id: "grs_50", display_name: "GRS 50%+ (Global Recycled Standard)", scope: "fiber", bonus_points: 10 },
-  rds: { id: "rds", display_name: "RDS (Responsible Down Standard)", scope: "fiber", bonus_points: 10 },
-  better_cotton_bci: { id: "better_cotton_bci", display_name: "Better Cotton Initiative (BCI)", scope: "fiber", bonus_points: 6 },
-  rcs: { id: "rcs", display_name: "RCS (Recycled Claim Standard)", scope: "fiber", bonus_points: 6 },
-  // Product-level
-  oeko_tex_100: { id: "oeko_tex_100", display_name: "OEKO-TEX Standard 100", scope: "product", bonus_points: 5 },
-  oeko_tex_made_in_green: { id: "oeko_tex_made_in_green", display_name: "OEKO-TEX Made in Green", scope: "product", bonus_points: 12 },
-  cradle_to_cradle_gold: { id: "cradle_to_cradle_gold", display_name: "Cradle to Cradle Gold", scope: "product", bonus_points: 14 },
-  cradle_to_cradle_silver: { id: "cradle_to_cradle_silver", display_name: "Cradle to Cradle Silver", scope: "product", bonus_points: 10 },
-  cradle_to_cradle_bronze: { id: "cradle_to_cradle_bronze", display_name: "Cradle to Cradle Bronze", scope: "product", bonus_points: 6 },
-  // Process-level
-  bluesign: { id: "bluesign", display_name: "Bluesign System Partner", scope: "process", bonus_points: 10 },
-  fair_trade: { id: "fair_trade", display_name: "Fair Trade Certified", scope: "process", bonus_points: 10 },
-  sa8000: { id: "sa8000", display_name: "SA8000 (Social Accountability)", scope: "process", bonus_points: 8 },
-  wrap: { id: "wrap", display_name: "WRAP (Worldwide Responsible Accredited Production)", scope: "process", bonus_points: 6 },
-  // Brand-level
-  b_corp_80plus: { id: "b_corp_80plus", display_name: "B Corp (80+ score)", scope: "brand", bonus_points: 8 },
-  "1_percent_for_planet": { id: "1_percent_for_planet", display_name: "1% for the Planet", scope: "brand", bonus_points: 4 },
-  // Manufacturing-level
-  made_in_italy_100: { id: "made_in_italy_100", display_name: "100% Made in Italy", scope: "manufacturing", bonus_points: 8 },
-  made_green_italy: { id: "made_green_italy", display_name: "Made Green in Italy", scope: "manufacturing", bonus_points: 10 }
-};
-function getCertification(id) {
-  if (!id) return void 0;
-  return CERTIFICATIONS[id];
-}
-function bonusFor(id) {
-  const cert = getCertification(id);
-  return cert ? cert.bonus_points : 0;
-}
-
-// src/scoring/v2/lenses/sustainabilityLens.ts
-function sustainabilityLens(input) {
-  const total = input.productCertifications.reduce((sum, id) => sum + bonusFor(id), 0) + input.brandCertifications.reduce((sum, id) => sum + bonusFor(id), 0);
-  if (total === 0) return null;
-  return Math.min(100, Math.max(0, total));
-}
-
 // src/scoring/v2/calculateWorthyScoreV2.ts
 var FULL_WEIGHTS_SUM = Object.values(WORTHY_SCORE_V2_WEIGHTS).reduce((a, b) => a + b, 0);
 function calculateWorthyScoreV2(input) {
@@ -364,10 +318,6 @@ function calculateWorthyScoreV2(input) {
     input.category.avgCompositionScore,
     input.category.avgPrice
   );
-  const sustainabilityScore = sustainabilityLens({
-    productCertifications: input.productCertifications ?? [],
-    brandCertifications: input.brandCertifications ?? []
-  });
   let weightedSum = 0;
   let usedWeight = 0;
   weightedSum += compositionScore * WORTHY_SCORE_V2_WEIGHTS.composition;
@@ -378,10 +328,6 @@ function calculateWorthyScoreV2(input) {
   }
   weightedSum += qprScore * WORTHY_SCORE_V2_WEIGHTS.qpr;
   usedWeight += WORTHY_SCORE_V2_WEIGHTS.qpr;
-  if (sustainabilityScore !== null) {
-    weightedSum += sustainabilityScore * WORTHY_SCORE_V2_WEIGHTS.sustainability;
-    usedWeight += WORTHY_SCORE_V2_WEIGHTS.sustainability;
-  }
   const raw = weightedSum / usedWeight;
   const final = Math.round(Math.min(100, Math.max(0, raw)));
   const verdict = verdictFromScore(final);
@@ -391,8 +337,7 @@ function calculateWorthyScoreV2(input) {
     lenses: {
       composition: { score: compositionScore, used: true },
       manufacturing: { score: manufacturingScore, used: manufacturingScore !== null },
-      qpr: { score: qprScore, used: true },
-      sustainability: { score: sustainabilityScore, used: sustainabilityScore !== null }
+      qpr: { score: qprScore, used: true }
     },
     weights: WORTHY_SCORE_V2_WEIGHTS,
     confidence,
@@ -699,6 +644,43 @@ function getFiberDescription(fiber, percentage) {
   return FIBER_DESCRIPTIONS[key] ?? null;
 }
 
+// src/constants/certifications.ts
+var CERTIFICATIONS = {
+  // Fiber-level
+  gots: { id: "gots", display_name: "GOTS (Global Organic Textile Standard)", scope: "fiber", bonus_points: 15 },
+  rws: { id: "rws", display_name: "RWS (Responsible Wool Standard)", scope: "fiber", bonus_points: 12 },
+  gcs: { id: "gcs", display_name: "GCS (Good Cashmere Standard)", scope: "fiber", bonus_points: 12 },
+  grs_50: { id: "grs_50", display_name: "GRS 50%+ (Global Recycled Standard)", scope: "fiber", bonus_points: 10 },
+  rds: { id: "rds", display_name: "RDS (Responsible Down Standard)", scope: "fiber", bonus_points: 10 },
+  better_cotton_bci: { id: "better_cotton_bci", display_name: "Better Cotton Initiative (BCI)", scope: "fiber", bonus_points: 6 },
+  rcs: { id: "rcs", display_name: "RCS (Recycled Claim Standard)", scope: "fiber", bonus_points: 6 },
+  // Product-level
+  oeko_tex_100: { id: "oeko_tex_100", display_name: "OEKO-TEX Standard 100", scope: "product", bonus_points: 5 },
+  oeko_tex_made_in_green: { id: "oeko_tex_made_in_green", display_name: "OEKO-TEX Made in Green", scope: "product", bonus_points: 12 },
+  cradle_to_cradle_gold: { id: "cradle_to_cradle_gold", display_name: "Cradle to Cradle Gold", scope: "product", bonus_points: 14 },
+  cradle_to_cradle_silver: { id: "cradle_to_cradle_silver", display_name: "Cradle to Cradle Silver", scope: "product", bonus_points: 10 },
+  cradle_to_cradle_bronze: { id: "cradle_to_cradle_bronze", display_name: "Cradle to Cradle Bronze", scope: "product", bonus_points: 6 },
+  // Process-level
+  bluesign: { id: "bluesign", display_name: "Bluesign System Partner", scope: "process", bonus_points: 10 },
+  fair_trade: { id: "fair_trade", display_name: "Fair Trade Certified", scope: "process", bonus_points: 10 },
+  sa8000: { id: "sa8000", display_name: "SA8000 (Social Accountability)", scope: "process", bonus_points: 8 },
+  wrap: { id: "wrap", display_name: "WRAP (Worldwide Responsible Accredited Production)", scope: "process", bonus_points: 6 },
+  // Brand-level
+  b_corp_80plus: { id: "b_corp_80plus", display_name: "B Corp (80+ score)", scope: "brand", bonus_points: 8 },
+  "1_percent_for_planet": { id: "1_percent_for_planet", display_name: "1% for the Planet", scope: "brand", bonus_points: 4 },
+  // Manufacturing-level
+  made_in_italy_100: { id: "made_in_italy_100", display_name: "100% Made in Italy", scope: "manufacturing", bonus_points: 8 },
+  made_green_italy: { id: "made_green_italy", display_name: "Made Green in Italy", scope: "manufacturing", bonus_points: 10 }
+};
+function getCertification(id) {
+  if (!id) return void 0;
+  return CERTIFICATIONS[id];
+}
+function bonusFor(id) {
+  const cert = getCertification(id);
+  return cert ? cert.bonus_points : 0;
+}
+
 // src/validation/productValidation.ts
 var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 var HTML_TAG_RE = /<[^>]+>/;
@@ -865,7 +847,6 @@ function isValidBarcode(code) {
   manufacturingLens,
   manufacturingScoreFor,
   qprLens,
-  sustainabilityLens,
   validateComposition,
   validatePrice,
   validateProduct,

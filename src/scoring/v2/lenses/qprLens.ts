@@ -1,6 +1,6 @@
 import { calculateQPR } from "../../calculateQPR";
 
-// QPR lens (peso 20% del Worthy Score v2).
+// QPR lens (peso 25% del Worthy Score v2).
 // Sigmoid del rapporto qualità/prezzo del prodotto rispetto al riferimento di
 // cluster (categoria × market_segment del brand) con fallback alla median di
 // categoria. I valori di riferimento sono risolti dal chiamante.

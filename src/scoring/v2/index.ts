@@ -7,6 +7,4 @@ export { calculateWorthyScoreV2 } from "./calculateWorthyScoreV2";
 export { compositionLens } from "./lenses/compositionLens";
 export { qprLens } from "./lenses/qprLens";
 export { manufacturingLens } from "./lenses/manufacturingLens";
-export { sustainabilityLens } from "./lenses/sustainabilityLens";
 export type { ManufacturingInput } from "./lenses/manufacturingLens";
-export type { SustainabilityLensInput } from "./lenses/sustainabilityLens";

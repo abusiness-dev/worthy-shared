@@ -21,9 +21,7 @@ export {
   compositionLens,
   qprLens,
   manufacturingLens,
-  sustainabilityLens,
 } from "./v2";
 export type {
   ManufacturingInput,
-  SustainabilityLensInput,
 } from "./v2";
