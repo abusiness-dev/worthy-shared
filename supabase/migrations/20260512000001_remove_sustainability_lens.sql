@@ -160,11 +160,20 @@ DROP FUNCTION IF EXISTS calculate_sustainability_lens(uuid);
 
 -- ============================================================
 -- 3. Cleanup colonna score_sustainability (resta in schema, sempre NULL)
+--    L'UPDATE deve bypassare il BEFORE trigger protect_product_privileged_fields
+--    che blocca le scritture su score_sustainability fuori da service_role.
 -- ============================================================
 
-UPDATE products
-SET score_sustainability = NULL
-WHERE score_sustainability IS NOT NULL;
+DO $$
+BEGIN
+  PERFORM set_config('worthy.skip_protection', 'true', true);
+
+  UPDATE products
+  SET score_sustainability = NULL
+  WHERE score_sustainability IS NOT NULL;
+
+  PERFORM set_config('worthy.skip_protection', 'false', true);
+END $$;
 
 -- ============================================================
 -- 4. Backfill: ricalcolo di tutti i prodotti attivi con la nuova formula
