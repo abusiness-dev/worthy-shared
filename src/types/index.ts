@@ -37,3 +37,9 @@ export type {
 } from "./scoring";
 export type { PriceHistory } from "./price-history";
 export type { SavedProduct, SavedComparison } from "./saved";
+export type {
+  MatchProductByTagInput,
+  MatchProductByTagOutput,
+  PhotoSearchDetected,
+  PhotoSearchCandidate,
+} from "./photo-search";
