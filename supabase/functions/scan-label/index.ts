@@ -1,4 +1,42 @@
+// scan-label
+// ----------
+// OCR di etichette tessili (composizione, paese, istruzioni lavaggio) via Claude
+// Sonnet 4 (vision). Il client invia il base64 di una foto dell'etichetta.
+//
+// SICUREZZA (allineata a match-product-by-tag)
+// --------------------------------------------
+// - JWT richiesto: auth.getUser() rifiuta richieste anon (la Claude API key è a
+//   nostro carico → senza auth chiunque con la anon key pubblica può bruciarla).
+// - Rate limit per-utente via RPC atomica check_and_record_throttle.
+// - Size limit 8MB sul base64 (~6MB binari) per evitare DoS economico/memoria.
+// - Validazione media_type (allowlist).
+// - Errori generici al client: dettagli upstream solo nei log server-side.
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+
+// ---------- Constants ----------
+
+const FUNCTION_NAME = "scan-label";
+const MODEL = "claude-sonnet-4-20250514";
+const MAX_BASE64_BYTES = 8 * 1024 * 1024; // 8 MB
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW = "1 minute";
+
+const ALLOWED_MEDIA_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+] as const;
+type MediaType = (typeof ALLOWED_MEDIA_TYPES)[number];
+
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
 
 // ---------- Known fibers (mirrored from src/constants/fibers.ts) ----------
 
@@ -73,7 +111,7 @@ interface ScanLabelResult {
 
 interface RequestBody {
   image_base64: string;
-  media_type?: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+  media_type?: MediaType;
 }
 
 // ---------- Prompt ----------
@@ -88,47 +126,92 @@ Regole:
 Rispondi SOLO con JSON valido, senza markdown, senza commenti. Esempio:
 {"composition":[{"fiber":"Cotone","percentage":95},{"fiber":"Elastan","percentage":5}],"country_of_production":"Bangladesh","care_instructions":"Lavare a 30°C, Non candeggiare"}`;
 
+// ---------- Helpers ----------
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+  });
+}
+
 // ---------- Handler ----------
 
 Deno.serve(async (req: Request) => {
   // CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers":
-          "authorization, x-client-info, apikey, content-type",
-      },
-    });
+    return new Response("ok", { headers: CORS_HEADERS });
   }
 
   if (req.method !== "POST") {
-    return Response.json({ error: "Method not allowed" }, { status: 405 });
+    return jsonResponse({ error: "Method not allowed" }, 405);
   }
 
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!apiKey) {
-    return Response.json(
-      { error: "ANTHROPIC_API_KEY not configured" },
-      { status: 500 },
-    );
+  // Env
+  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!anthropicKey || !supabaseUrl || !anonKey || !serviceKey) {
+    return jsonResponse({ error: "Server misconfigured" }, 500);
   }
 
+  // Body
   let body: RequestBody;
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    return jsonResponse({ error: "Invalid JSON body" }, 400);
   }
 
-  const { image_base64, media_type = "image/jpeg" } = body;
+  const { image_base64 } = body;
+  const media_type: MediaType = ALLOWED_MEDIA_TYPES.includes(
+    body.media_type as MediaType,
+  )
+    ? (body.media_type as MediaType)
+    : "image/jpeg";
 
-  if (!image_base64) {
-    return Response.json(
-      { error: "image_base64 is required" },
-      { status: 400 },
-    );
+  if (!image_base64 || typeof image_base64 !== "string") {
+    return jsonResponse({ error: "image_base64 is required" }, 400);
+  }
+  if (image_base64.length > MAX_BASE64_BYTES) {
+    return jsonResponse({ error: "Image too large (max 8MB base64)" }, 413);
+  }
+
+  // Auth (verifica firma JWT lato Supabase Auth)
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const authClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data: userData, error: userErr } = await authClient.auth.getUser();
+  if (userErr || !userData?.user) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+  const userId = userData.user.id;
+
+  // Service-role client per il throttle (check_and_record_throttle è REVOKEd
+  // da anon/authenticated: solo service_role può chiamarlo).
+  const svc = createClient(supabaseUrl, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  // Throttle — PRIMA della chiamata costosa a Claude.
+  const { data: allowed, error: throttleErr } = await svc.rpc(
+    "check_and_record_throttle",
+    {
+      p_user_id: userId,
+      p_function: FUNCTION_NAME,
+      p_max: RATE_LIMIT_MAX,
+      p_window: RATE_LIMIT_WINDOW,
+    },
+  );
+  if (throttleErr) {
+    console.error("Throttle RPC error", throttleErr);
+    return jsonResponse({ error: "Throttle check failed" }, 500);
+  }
+  if (allowed === false) {
+    return jsonResponse({ error: "Rate limit exceeded" }, 429);
   }
 
   // Call Claude API with vision
@@ -136,11 +219,11 @@ Deno.serve(async (req: Request) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": apiKey,
+      "x-api-key": anthropicKey,
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model: MODEL,
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
       messages: [
@@ -166,11 +249,9 @@ Deno.serve(async (req: Request) => {
   });
 
   if (!claudeResponse.ok) {
-    const err = await claudeResponse.text();
-    return Response.json(
-      { error: "Claude API error", details: err },
-      { status: 502 },
-    );
+    // Dettaglio upstream solo nei log server-side, mai al client.
+    console.error("Claude API error", claudeResponse.status, await claudeResponse.text());
+    return jsonResponse({ error: "OCR service error" }, 502);
   }
 
   const claudeData = await claudeResponse.json();
@@ -179,10 +260,7 @@ Deno.serve(async (req: Request) => {
   );
 
   if (!textBlock?.text) {
-    return Response.json(
-      { error: "No text response from Claude" },
-      { status: 502 },
-    );
+    return jsonResponse({ error: "OCR service error" }, 502);
   }
 
   // Parse the JSON from Claude's response
@@ -190,10 +268,9 @@ Deno.serve(async (req: Request) => {
   try {
     parsed = JSON.parse(textBlock.text);
   } catch {
-    return Response.json(
-      { error: "Failed to parse Claude response as JSON", raw: textBlock.text },
-      { status: 502 },
-    );
+    // Non rimandare il testo grezzo del modello al client.
+    console.error("Failed to parse Claude response as JSON");
+    return jsonResponse({ error: "OCR parse error" }, 502);
   }
 
   // Normalize fiber names to known IDs
@@ -217,10 +294,5 @@ Deno.serve(async (req: Request) => {
     },
   };
 
-  return Response.json(result, {
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Content-Type": "application/json",
-    },
-  });
+  return jsonResponse(result, 200);
 });

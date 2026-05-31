@@ -68,7 +68,14 @@ In `worthy-app` and `worthy-admin` package.json:
 ## Edge functions
 
 ### `scan-label`
-OCR di etichette tessili (composizione, paese, istruzioni lavaggio) via Claude Sonnet 4. Stateless, nessuna auth.
+OCR di etichette tessili (composizione, paese, istruzioni lavaggio) via Claude Sonnet 4.
+
+- **JWT obbligatorio** (`auth.getUser()` rifiuta richieste anon) — la Claude API key è a nostro carico.
+- **Rate limit** 10 chiamate/min/utente via RPC atomica `check_and_record_throttle` (applicato PRIMA della chiamata a Claude).
+- **Size limit** 8MB sul base64 → 413 oltre la soglia. Validazione `media_type` (allowlist jpeg/png/webp/gif).
+- **Errori generici al client**: i dettagli upstream (status/testo Claude) restano solo nei log server-side.
+- **Env vars**: `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+- ⚠️ `worthy-app` deve inviare l'header `Authorization: Bearer <jwt>` (prima era chiamabile anon).
 
 ### `match-product-by-tag`
 Fallback fuzzy quando lo scanner barcode di `worthy-app` non trova il prodotto. L'utente scatta foto al cartellino-prezzo; la function estrae brand+nome con Claude Haiku 4.5, poi chiama `search_products_fuzzy` per ottenere i top-5 candidati ordinati per similarità trigram.
@@ -80,3 +87,9 @@ Fallback fuzzy quando lo scanner barcode di `worthy-app` non trova il prodotto. 
 - **Size limit**: 8MB sul base64 (~6MB binari) → 413 oltre la soglia.
 - **Env vars**: `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
 - **Response shape**: `{ detected: { brand, name, confidence }, candidates: PhotoSearchCandidate[], _meta: { cached, model } }` — vedi `src/types/photo-search.ts`.
+
+### `delete-user-account` (GDPR Art. 17)
+Cancella l'account dell'utente **chiamante**. JWT obbligatorio; l'utente target è **sempre** `auth.uid()` (mai uno userId dal body → anti-IDOR). Usa `auth.admin.deleteUser(uid)`: la FK `public.users.id → auth.users(id) ON DELETE CASCADE` propaga la cancellazione a tutte le tabelle figlie; `products.contributed_by → SET NULL` (catalogo preservato, anonimizzato). Throttle 3/min. Env: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+
+### `export-user-data` (GDPR Art. 20)
+Esporta in JSON tutti i dati dell'utente **chiamante**. JWT obbligatorio; query service_role **sempre filtrate per `auth.uid()`** (anti-IDOR). Copre `users, scan_history, saved_products, saved_comparisons, product_votes, product_reports, user_consents, user_badges, user_brand_preferences, user_category_preferences` + i `products` con `contributed_by = uid`. Throttle 2/min. Env: come sopra.

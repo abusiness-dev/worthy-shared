@@ -1,4 +1,5 @@
 import type { ProductInsert } from "../types";
+import { validateAffiliateUrl, validatePhotoUrls } from "./urlValidation";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HTML_TAG_RE = /<[^>]+>/;
@@ -39,6 +40,12 @@ export function validateProduct(data: Partial<ProductInsert>): { valid: boolean;
   if (!data.composition || !Array.isArray(data.composition) || data.composition.length === 0) {
     errors.push("La composizione è obbligatoria e deve contenere almeno una fibra");
   }
+
+  const affiliate = validateAffiliateUrl(data.affiliate_url);
+  if (!affiliate.valid && affiliate.error) errors.push(affiliate.error);
+
+  const photos = validatePhotoUrls(data.photo_urls);
+  if (!photos.valid && photos.error) errors.push(photos.error);
 
   return { valid: errors.length === 0, errors };
 }
