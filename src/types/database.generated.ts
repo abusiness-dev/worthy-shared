@@ -178,7 +178,9 @@ export type Database = {
           icon: string
           id: string
           median_composition_score: number
+          median_manufacturing_score: number | null
           median_price: number
+          median_quality_index: number
           name: string
           product_count: number
           slug: string
@@ -189,7 +191,9 @@ export type Database = {
           icon: string
           id?: string
           median_composition_score?: number
+          median_manufacturing_score?: number | null
           median_price?: number
+          median_quality_index?: number
           name: string
           product_count?: number
           slug: string
@@ -200,7 +204,9 @@ export type Database = {
           icon?: string
           id?: string
           median_composition_score?: number
+          median_manufacturing_score?: number | null
           median_price?: number
+          median_quality_index?: number
           name?: string
           product_count?: number
           slug?: string
@@ -212,7 +218,9 @@ export type Database = {
           category_id: string
           market_segment: Database["public"]["Enums"]["market_segment"]
           median_composition_score: number
+          median_manufacturing_score: number | null
           median_price: number
+          median_quality_index: number
           product_count: number
           updated_at: string
         }
@@ -220,7 +228,9 @@ export type Database = {
           category_id: string
           market_segment: Database["public"]["Enums"]["market_segment"]
           median_composition_score: number
+          median_manufacturing_score?: number | null
           median_price: number
+          median_quality_index?: number
           product_count: number
           updated_at?: string
         }
@@ -228,7 +238,9 @@ export type Database = {
           category_id?: string
           market_segment?: Database["public"]["Enums"]["market_segment"]
           median_composition_score?: number
+          median_manufacturing_score?: number | null
           median_price?: number
+          median_quality_index?: number
           product_count?: number
           updated_at?: string
         }
@@ -337,6 +349,57 @@ export type Database = {
             referencedColumns: ["product_id"]
           },
         ]
+      }
+      function_calls_throttle: {
+        Row: {
+          called_at: string
+          function_name: string
+          id: number
+          user_id: string
+        }
+        Insert: {
+          called_at?: string
+          function_name: string
+          id?: number
+          user_id: string
+        }
+        Update: {
+          called_at?: string
+          function_name?: string
+          id?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      label_ocr_cache: {
+        Row: {
+          confidence: number
+          created_at: string
+          detected_brand: string
+          detected_name: string
+          expires_at: string
+          image_sha256: string
+          model: string
+        }
+        Insert: {
+          confidence: number
+          created_at?: string
+          detected_brand?: string
+          detected_name?: string
+          expires_at?: string
+          image_sha256: string
+          model: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          detected_brand?: string
+          detected_name?: string
+          expires_at?: string
+          image_sha256?: string
+          model?: string
+        }
+        Relationships: []
       }
       mattia_reviews: {
         Row: {
@@ -1327,18 +1390,29 @@ export type Database = {
         Returns: number
       }
       calculate_qpr: { Args: { p_product_id: string }; Returns: number }
+      calculate_qpr_cluster: {
+        Args: {
+          p_brand_id: string
+          p_category_id: string
+          p_comp_score: number
+          p_manuf_score: number
+          p_price: number
+        }
+        Returns: number
+      }
       calculate_score_inline: {
-        Args: { p_category_id: string; p_composition: Json; p_price: number }
+        Args: {
+          p_brand_id?: string
+          p_category_id: string
+          p_composition: Json
+          p_price: number
+        }
         Returns: {
           comp_score: number
           final_verdict: Database["public"]["Enums"]["verdict"]
           qpr_score: number
           worthy_score: number
         }[]
-      }
-      calculate_sustainability_lens: {
-        Args: { p_product_id: string }
-        Returns: number
       }
       calculate_worthy_score: {
         Args: { p_product_id: string }
@@ -1348,11 +1422,66 @@ export type Database = {
         Args: { p_product_id: string }
         Returns: Json
       }
+      check_and_record_throttle: {
+        Args: {
+          p_function: string
+          p_max: number
+          p_user_id: string
+          p_window: string
+        }
+        Returns: boolean
+      }
+      compute_quality_index: {
+        Args: { p_comp_score: number; p_manuf_score: number }
+        Returns: number
+      }
       find_potential_duplicates: {
         Args: { p_brand_id: string; p_name: string; p_product_id: string }
         Returns: {
           found_product_id: string
           name_similarity: number
+        }[]
+      }
+      get_brand_ids_by_gender: {
+        Args: never
+        Returns: {
+          men_ids: string[]
+          women_ids: string[]
+        }[]
+      }
+      get_my_profile: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          created_at: string
+          display_name: string
+          email: string
+          error_rate: number
+          id: string
+          is_premium: boolean
+          last_active_date: string
+          onboarding_completed: boolean
+          points: number
+          premium_expires_at: string
+          products_contributed: number
+          products_verified: number
+          role: Database["public"]["Enums"]["user_role"]
+          streak_days: number
+          trust_level: Database["public"]["Enums"]["trust_level"]
+          updated_at: string
+        }[]
+      }
+      get_onboarding_home: {
+        Args: { p_limit?: number }
+        Returns: {
+          category_id: string
+          category_name: string
+          category_slug: string
+          icon: string
+          image_url: string
+          product_id: string
+          product_name: string
+          worthy_score: number
         }[]
       }
       is_service_role_or_internal: { Args: never; Returns: boolean }
@@ -1377,6 +1506,17 @@ export type Database = {
           p_segment: Database["public"]["Enums"]["market_segment"]
         }
         Returns: undefined
+      }
+      search_products_fuzzy: {
+        Args: { p_brand: string; p_max?: number; p_product: string }
+        Returns: {
+          brand_name: string
+          name: string
+          photo_url: string
+          product_id: string
+          sim: number
+          slug: string
+        }[]
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
