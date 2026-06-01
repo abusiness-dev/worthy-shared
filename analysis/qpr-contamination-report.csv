@@ -1,0 +1,325 @@
+Initialising login role...
+contaminated_category,market_segment,cluster_n,cluster_median_vps,id,product_name,brand,price,comp,vps,current_qpr
+abito,premium,45,2.98,88bcba6a-c492-4efb-9377-939fbe918d12,Camicia a righe regular fit,Massimo Dutti,69.95,72.00,0.97,97.00
+abito,premium,45,2.98,ab7c0f0a-8d31-4859-9d1d-f658e9c16257,Shorts in lino con pinces e coulisse,COS,89.00,88.00,1.01,95.00
+abito,premium,45,2.98,9ade13f6-ff5b-4284-b2b0-809d5c111cfc,Shorts in lino con pinces e coulisse 1339420001,COS,89.00,88.00,1.01,95.00
+abito,premium,45,2.98,552ec391-dd3c-4203-8889-155356923014,Pantaloni da completo in lino 707,Massimo Dutti,89.95,88.00,1.02,95.00
+abito,premium,45,2.98,c7d6dca3-6d76-4f62-a113-5e2f7dc2b62e,Gilet da completo di lana fresca,Massimo Dutti,99.95,92.00,1.09,92.00
+abito,premium,45,2.98,244bafd4-49c2-469f-a36b-45dc26089d24,Pantaloni da completo gamba larga in fresco lana,Massimo Dutti,99.95,92.00,1.09,92.00
+abito,premium,45,2.98,6728dd15-86e4-4073-90f7-8df94579aaa0,Pantaloni da completo in fresco lana,Massimo Dutti,99.95,92.00,1.09,92.00
+abito,premium,45,2.98,c9673f03-7ad9-42c9-b27e-036d6a7fc426,Pantaloni da completo in lana fredda 405,Massimo Dutti,99.95,92.00,1.09,92.00
+abito,premium,45,2.98,9be1d866-3afd-4b0e-8094-74a4c2a40c88,Pantaloni da completo a quadri in misto lana fredda,Massimo Dutti,99.95,92.00,1.09,92.00
+abito,premium,45,2.98,f2bf183c-94aa-4a38-8588-73a251c87aee,Pantaloni da abito in misto lana fredda,Massimo Dutti,99.95,92.00,1.09,92.00
+abito,premium,45,2.98,ea513767-a296-407e-8feb-196f2d93671d,Pantaloni da completo microstruttura lana fredda,Massimo Dutti,99.95,92.00,1.09,92.00
+abito,premium,45,2.98,1bc3b7ab-c1b8-49a4-a095-ea82c24f6d1e,Pantaloni completo in lana fresca,Massimo Dutti,99.95,92.00,1.09,92.00
+blazer,premium,34,2.83,2728dbff-88a9-4193-9ac8-28cb242e84b1,Blazer due bottoni 100% lana sottilissima 800,Massimo Dutti,169.00,92.00,1.84,94.00
+blazer,premium,34,2.83,bba57068-2917-461c-aabe-d38812e99280,Blazer due bottoni 100% lana sottilissima 401,Massimo Dutti,169.00,92.00,1.84,94.00
+blazer,premium,34,2.83,537203b9-26ec-47d9-8bdc-f0f446697a39,Blazer mélange con lana,Massimo Dutti,169.00,85.00,1.99,89.00
+blazer,premium,34,2.83,f78de7b2-3b9b-414e-87d3-7e8f123c5a1e,Blazer monopetto in lino,COS,199.00,88.00,2.26,78.00
+blazer,premium,34,2.83,2141c9f9-5332-4727-baa1-ff25ae59e18e,Blazer 100% lino,Massimo Dutti,199.00,88.00,2.26,78.00
+blazer,premium,34,2.83,570829cb-e6f8-48f4-8378-0602a241152e,Blazer con tasche e cintura 100% lino,Massimo Dutti,199.00,88.00,2.26,78.00
+blazer,premium,34,2.83,db4d9a21-f880-4eee-811e-38f652b62657,Blazer monopetto in lino 1275809004,COS,199.00,88.00,2.26,78.00
+blazer,premium,34,2.83,0c94d910-a464-4d09-8c30-64fd4dd27929,Blazer foulard mélange 100% lino,Massimo Dutti,229.00,88.00,2.60,61.00
+blazer,premium,34,2.83,9da0bb61-a7ea-4722-b611-ecffcae76d8e,Blazer da abito 100% lana fredda 401,Massimo Dutti,249.00,92.00,2.71,56.00
+blazer,premium,34,2.83,33d6dc13-8f64-44ea-84bd-7bb5e3196a50,Blazer da completo 100% lana fredda 800,Massimo Dutti,249.00,92.00,2.71,56.00
+blazer,premium,34,2.83,6c6e1074-4111-4869-a86e-dc3e539bc802,Blazer da completo in lana fredda,Massimo Dutti,249.00,92.00,2.71,56.00
+blazer,premium,34,2.83,237a5443-5e9e-42d0-9162-82a4ee905f21,Blazer da completo microstruttura 100% lana fredda,Massimo Dutti,249.00,92.00,2.71,56.00
+blazer,premium,34,2.83,2b0f1909-1de4-4ddb-8ca4-bb4a6e582280,Blazer da completo a quadri in lana fredda 401,Massimo Dutti,249.00,92.00,2.71,56.00
+blazer,premium,34,2.83,62c88e6d-f8f7-4cc7-9d03-6f527de880b2,Blazer da completo 100% lana fredda 802,Massimo Dutti,249.00,92.00,2.71,56.00
+blazer,premium,34,2.83,c843e735-e059-4035-afc0-ba27eb5a5ea4,Blazer da completo 100% lana fredda 801,Massimo Dutti,249.00,92.00,2.71,56.00
+blazer,premium,34,2.83,595381f2-bce0-466c-99ae-2555e7e246a1,Blazer da completo 100% lana fredda 400,Massimo Dutti,249.00,92.00,2.71,56.00
+bomber,fast_fashion,8,1.95,ef1bc846-76f3-430c-b739-865c8299f645,GIUBBOTTO BOMBER Z1975 DENIM COLLO ALTO,Zara,39.95,73.00,0.55,100.00
+bomber,fast_fashion,8,1.95,296ccb6b-6a75-460a-ae26-1f0c44c1a064,GIACCA BOMBER EFFETTO SLAVATO,Zara,39.95,72.00,0.55,100.00
+bomber,premium,45,3.25,f10dcf61-4f3f-49cf-8f09-77b710764e58,Giacca bomber con dettaglio sul colletto 100% lino,Massimo Dutti,99.95,88.00,1.14,100.00
+bomber,premium,45,3.25,8fd76548-3185-458a-8389-0505a6bcb4b7,Bomber in jersey di cotone 1317969002,COS,89.00,68.00,1.31,100.00
+bomber,premium,45,3.25,c4106558-f253-42df-b8c4-22cb8c78f5d3,Bomber in jersey di cotone,COS,89.00,68.00,1.31,100.00
+bomber,premium,45,3.25,f5429603-96e0-4da3-9b95-08bfbc11202a,Bomber spigato 100% lana,Massimo Dutti,129.00,92.00,1.40,100.00
+bomber,premium,45,3.25,9f8ea4ed-9985-46c9-a002-8d02f3a2f42d,Bomber colletto con fascetta e dettaglio bottoni,Massimo Dutti,99.95,71.00,1.41,100.00
+bomber,premium,45,3.25,6c8ecaad-8dfa-42d9-901f-1f21c2a1932a,Bomber in lino e seta 505,Massimo Dutti,129.00,90.00,1.43,100.00
+bomber,premium,45,3.25,6b46de68-3ba0-4d50-a5c2-ac12c0d6c6f6,Blouson in lino,COS,129.00,79.00,1.63,100.00
+bomber,premium,45,3.25,9afbf3ce-40fa-4197-8a52-72ab964749f1,Bomber in lino e seta 800,Massimo Dutti,149.00,90.00,1.66,100.00
+bomber,premium,45,3.25,c530fa45-29b2-401f-be03-b7cc2ae602b5,Bomber collo alto a righe,Massimo Dutti,129.00,71.00,1.82,99.00
+bomber,premium,45,3.25,9c64c465-a4f6-41de-a7cf-d85c15a88017,Bomber in lino,COS,150.00,82.00,1.83,99.00
+bomber,premium,45,3.25,2f4c9b15-fc85-4bac-b716-2d088901cd6e,Bomber con cerniera in lana,Massimo Dutti,169.00,92.00,1.84,99.00
+bomber,premium,45,3.25,b5b5dc87-435c-4f5d-b81c-c13010949cf3,Bomber con dettaglio collo in misto lino,Massimo Dutti,169.00,89.00,1.90,98.00
+camicie,fast_fashion,57,0.61,653b369c-f9a9-4f57-af46-0020033b1850,Maglione con Colletto Maniche Corte a Righe,Uniqlo,19.90,70.00,0.28,100.00
+camicie,fast_fashion,57,0.61,79dfad3d-c16d-41fb-b641-f350c8998956,CAMICIA IN GEORGETTE OVERSIZE CON TASCA,Zara,22.95,72.00,0.32,99.00
+camicie,fast_fashion,57,0.61,a3b31302-02cb-4205-b4a7-03abf6d82619,Polo Piqué a Righe,Uniqlo,19.90,60.00,0.33,99.00
+camicie,fast_fashion,57,0.61,d1b604d2-8a2e-4e1f-8802-f365fcff4f63,Polo Cotone Maniche Lunghe a Righe,Uniqlo,24.90,72.00,0.35,99.00
+camicie,fast_fashion,57,0.61,445c88ba-a11d-41be-96a0-353f4b5c1cb1,CAMICIA IMPUNTURE A CONTRASTO CON LINO,Zara,25.95,71.00,0.37,98.00
+camicie,fast_fashion,57,0.61,4caf7979-b8ef-40d5-afac-f169a02a29f3,CAMICIA Z1975 CORTA DENIM,Zara,29.95,72.00,0.42,94.00
+camicie,fast_fashion,57,0.61,4eed07df-04e6-44e6-86b2-ee2389869891,CAMICIA DENIM TRF CON CERNIERA,Zara,29.95,72.00,0.42,94.00
+camicie,fast_fashion,57,0.61,8ab902e4-20bb-42eb-a44f-2634da5d5223,Blusa 100% cotone con ricami traforati,Mango,29.99,72.00,0.42,93.00
+camicie,fast_fashion,57,0.61,f6e7e25c-d968-4f8d-a19d-84a9b462ae84,CAMICIA DENIM TRF AVVITATA,Zara,29.95,71.00,0.42,93.00
+camicie,fast_fashion,57,0.61,b6c2aaca-1a00-463d-9b14-f8d361fb93b4,Maglione con Colletto Maniche Corte Bicolore,Uniqlo,29.90,70.00,0.43,92.00
+camicie,fast_fashion,57,0.61,c01d1440-21ea-4eef-80cb-bb954741d755,CAMICIA A RIGHE MISTO LINO,Zara,25.95,59.00,0.44,91.00
+camicie,fast_fashion,57,0.61,51afaaba-873e-4282-9684-07d2230cd33d,Camicia Lino Misto Cotone,Uniqlo,34.90,79.00,0.44,90.00
+camicie,fast_fashion,57,0.61,400f08e7-c798-4f34-aec8-145fce9b5277,Maglione a Coste con Colletto a Righe,Uniqlo,19.90,44.00,0.45,89.00
+camicie,fast_fashion,57,0.61,84202cd2-d4c6-4d91-861d-2c3a9108d40b,Camicia 100% Lino Premium Oversized,Uniqlo,39.90,88.00,0.45,88.00
+camicie,fast_fashion,57,0.61,5b2006ab-0998-4eba-b64a-a5b5279c1b60,Maglione Cotone Pointelle con Colletto Maniche Corte a Righe,Uniqlo,34.90,72.00,0.48,83.00
+cappotto,premium,11,7.25,cbc3f5e0-2a49-4e90-bafe-8f92092da7a2,Cappotto a collo alto con abbottonatura in misto lana,Massimo Dutti,199.00,79.00,2.52,100.00
+cappotto,premium,11,7.25,b0e81064-84fe-4de3-8ad8-5fec940b5afb,Cappotto lungo collo alto lana,Massimo Dutti,299.00,92.00,3.25,100.00
+cappotto,premium,11,7.25,a640cdb9-392f-47df-8692-05a310503854,Cappotto lungo con maniche a pipistrello,Massimo Dutti,299.00,73.00,4.10,98.00
+chinos,premium,23,2.21,08e12e0d-a2fa-42a7-ae43-845338d7de3e,Camicia regular fit in lino con taschino,Massimo Dutti,69.95,88.00,0.79,100.00
+chinos,premium,23,2.21,b97834dd-7edc-47b6-a661-c7c547c0637f,Pantaloni chino navy wide leg tapered,Suitsupply,119.00,72.00,1.65,83.00
+chinos,premium,23,2.21,fd53df94-46a0-4aa5-ad04-bc0c81d62a23,Pantaloni chino elasticizzati slim fit in twill,Lacoste,120.00,72.00,1.67,83.00
+chinos,premium,23,2.21,ff23513d-e479-49f0-a7c6-c797ea76d9b4,Pantaloni in Felpa con Gamba Tapered,Lacoste,120.00,72.00,1.67,83.00
+chinos,premium,23,2.21,928762a1-d1d4-4ef6-a8ea-2a61332e32e1,Pantaloni chino regular fit in twill di cotone,Lacoste,120.00,72.00,1.67,83.00
+chinos,premium,23,2.21,379a98bd-219a-46f8-b3de-e7b43ca9fd20,Pantaloni chino regular fit in twill di cotone,Lacoste,120.00,72.00,1.67,83.00
+costume,premium,32,1.11,a95dfd54-506f-442b-922a-c4aa9c9abef3,Orecchini effetto roccia piccoli,Massimo Dutti,29.95,50.00,0.60,100.00
+costume,premium,32,1.11,e564c4ba-74a7-44f1-8cd7-c8a0b4bba533,Costume con dettaglio a righe,Massimo Dutti,49.95,57.00,0.88,98.00
+costume,premium,32,1.11,559a5dc0-a097-4a84-a165-06ff28e72c18,Camicetta fluida con dettaglio sulla schiena 100% lino,Massimo Dutti,79.95,88.00,0.91,97.00
+costume,premium,32,1.11,02f408c7-0b7c-4e96-a9f5-fde7c80d3baf,Camicetta lunga fluida 100% lino,Massimo Dutti,79.95,88.00,0.91,97.00
+costume,premium,32,1.11,5112d969-ab49-4386-95d9-5ddd8add39d5,Top bikini brillante,Massimo Dutti,39.95,42.00,0.95,96.00
+costume,premium,32,1.11,21cd8b04-ec70-423c-9eb7-e64b7c253862,Slip bikini lucido,Massimo Dutti,39.95,42.00,0.95,96.00
+costume,premium,32,1.11,bb2e6dff-83c5-4f69-ba57-de77b4b0059d,Telo mare a righe in cotone 505,Massimo Dutti,69.95,72.00,0.97,95.00
+costume,premium,32,1.11,594de7b0-689f-43d0-bcf8-26ef757b14be,Telo mare a righe in cotone 401,Massimo Dutti,69.95,72.00,0.97,95.00
+felpa-girocollo,premium,30,1.94,9edec9c8-3e52-4c30-b284-85bee984069e,Felpa oversize in cotone a maniche corte,COS,49.00,72.00,0.68,100.00
+felpa-girocollo,premium,30,1.94,95c8e6ca-bc54-439e-bda3-d0fc1733ce15,Felpa in cotone lavato 1316481001,COS,59.00,72.00,0.82,100.00
+felpa-girocollo,premium,30,1.94,923f88f6-d7dd-40f2-8dfb-fc6e329ec08d,Felpa in cotone lavato dal taglio rilassato,COS,59.00,72.00,0.82,100.00
+felpa-girocollo,premium,30,1.94,d118f4fe-1c0a-4fe1-b3e3-80053ed408f6,Felpa in cotone lavato dal taglio rilassato 1216426012,COS,59.00,72.00,0.82,100.00
+felpa-girocollo,premium,30,1.94,8373e34a-f507-4372-bce7-792623e7a4db,Felpa in cotone lavato,COS,59.00,72.00,0.82,100.00
+felpa-girocollo,premium,30,1.94,0ede1401-792e-4a40-b44f-9538a2870374,Felpa in cotone lavato 1316481003,COS,59.00,72.00,0.82,100.00
+felpa-girocollo,premium,30,1.94,f766119d-b0a8-4743-93b5-fb9f0e096659,Felpa in cotone a nido d'ape con scollo a v,COS,69.00,72.00,0.96,99.00
+felpa-girocollo,premium,30,1.94,4d595860-e7ac-45e6-b568-e251c12666bc,Felpa polo in cotone lavato,COS,69.00,72.00,0.96,99.00
+felpe,fast_fashion,10,0.87,fff2f54d-aa80-494d-a240-dc02a04cb04a,MAGLIETTA RELAX FIT INTERLOCK /04,Zara,22.95,72.00,0.32,100.00
+felpe,fast_fashion,10,0.87,8ec816b7-6785-46ac-8d87-e0edf71d4d8b,POLO IN MAGLIA MORBIDA,Zara,20.95,43.00,0.49,99.00
+felpe,fast_fashion,10,0.87,860cd7dd-be0e-4a81-8334-e3c391ee727f,POLO IN MAGLIA REGULAR FIT,Zara,39.95,73.00,0.55,98.00
+giacche,fast_fashion,33,1.39,ec060132-5654-4f01-bf29-63e18922ce62,Giacca con Tasche,Uniqlo,29.90,72.00,0.42,100.00
+giacche,fast_fashion,33,1.39,c1e159d0-a954-4584-92cb-91eee87e6036,GIACCA CON TASCHE APPLICATE,Zara,35.95,76.00,0.47,100.00
+giacche,fast_fashion,33,1.39,df627607-3051-4490-925b-2bd825484d1f,GIACCA DI JEANS CON TASCHE,Zara,35.95,72.00,0.50,100.00
+giacche,fast_fashion,33,1.39,6e13db17-64ac-48b4-b843-7133a7c0bdb7,GIACCA MULTITASCHE,Zara,35.95,72.00,0.50,100.00
+giacche,fast_fashion,33,1.39,d21aa6d4-d71f-4d6d-bfc7-2a88a27c1f0c,GIACCA DI JEANS CON PASSANTI,Zara,39.95,72.00,0.55,99.00
+giacche,fast_fashion,33,1.39,c61769c9-ed97-4e88-b399-d9aabaf6fc0c,GIACCA DI JEANS TRF CON SPALLINE,Zara,45.95,72.00,0.64,97.00
+giacche,fast_fashion,33,1.39,7e0c2f63-f866-4bb7-be46-419149c7176a,Giacca Misto Lino a Righe,Uniqlo,49.90,77.00,0.65,97.00
+giacche,fast_fashion,33,1.39,93f88966-2b8a-40c8-a8c6-2b42753387b9,GIACCA AVVITATA CON SPALLINE IN LINO,Zara,55.95,71.00,0.79,87.00
+giacche,fast_fashion,33,1.39,d0640d8b-daac-462e-85e3-e2ec7739db9d,GIACCA DENIM TRF AVVITATA BOTTONI,Zara,59.95,72.00,0.83,83.00
+giacche,premium,105,3.23,9050bb17-6bc1-418d-a2a3-0c6c401023ef,Mantella incrociata in 100% seta di gelso,Massimo Dutti,69.95,95.00,0.74,100.00
+giacche,premium,105,3.23,f354b8f3-7a3f-4e2e-be0e-604372b23bae,Camicia a maniche corte con bottoni a pressione,Massimo Dutti,69.95,83.00,0.84,100.00
+giacche,premium,105,3.23,50697da0-81f8-44ce-b761-44b51f1c8c70,Camicia con bottoni automatici 100% lino,Massimo Dutti,79.95,88.00,0.91,100.00
+giacche,premium,105,3.23,172bbee3-feb6-4dc2-ae11-272a6df4abc6,Giacca in maglia traforata all'uncinetto 800,Massimo Dutti,79.95,72.00,1.11,100.00
+giacche,premium,105,3.23,d3498a7b-d63b-4eea-afe0-fc53a4bc1917,Giacca camicia 100% cotone,Massimo Dutti,79.95,72.00,1.11,100.00
+giacche,premium,105,3.23,c0333dbf-a613-4062-b032-127467e431ae,Giacca corta con dettaglio tasche 500,Massimo Dutti,99.95,90.00,1.11,100.00
+giacche,premium,105,3.23,c0205cd3-1633-4357-91a4-f819b0ef1c65,Giacca camicia lino tasche total look,Massimo Dutti,99.95,88.00,1.14,100.00
+giacche,premium,105,3.23,6c3b8176-985d-4e7a-b478-ce69cba85d61,Sovracamicia in lino con tasche,Massimo Dutti,99.95,88.00,1.14,100.00
+giacche,premium,105,3.23,8dc78a2e-7841-4af8-b32d-ed962d5c8a6f,Giacca trucker in denim,Massimo Dutti,89.95,72.00,1.25,100.00
+giacche,premium,105,3.23,2dda1613-b83b-411b-bef6-e8a73ea8bbca,Giacca in maglia traforata all'uncinetto 726,Massimo Dutti,99.95,72.00,1.39,99.00
+giacche,premium,105,3.23,1f41c1e3-5d84-4a26-8c63-ade0c27e11be,Giacca corta in maglia crochet a righe,Massimo Dutti,99.95,72.00,1.39,99.00
+giacche,premium,105,3.23,8b87dec8-436f-4105-a5da-cebd5b415731,Giacca in maglia crochet a contrasto,Massimo Dutti,99.95,72.00,1.39,99.00
+giacche,premium,105,3.23,0b47098a-e429-4966-add2-b548fea7ac6a,Giacca leggera con bottoni in cotone,Massimo Dutti,99.95,72.00,1.39,99.00
+giacche,premium,105,3.23,9c6f5551-7e21-4ea7-a3e7-20e73e03cbcd,Giacca corta in crochet di cotone,Massimo Dutti,99.95,72.00,1.39,99.00
+giacche,premium,105,3.23,6134e8f5-61c8-4573-a720-485758b5b14e,Giacca camicia delavé con dettaglio tasche in lino,Massimo Dutti,129.00,88.00,1.47,98.00
+giacche,premium,105,3.23,82b856b7-3fb7-4c4f-9c57-114d030317b4,Giacca corta 100% lino,Massimo Dutti,129.00,88.00,1.47,98.00
+giacche,premium,105,3.23,cf1adaaf-7237-4d92-9aa0-6861e999341f,Giacca a quadri in lino,COS,129.00,88.00,1.47,98.00
+giacche,premium,105,3.23,51416ddf-d8bf-4c91-9d4f-d1ff32553880,Giacca con dettaglio tasche e lino,Massimo Dutti,129.00,81.00,1.59,96.00
+giacche,premium,105,3.23,b9d2dedb-895b-4be1-9dba-afeadc7d2dca,Overshirt in cotone con pannello a contrasto,COS,129.00,77.00,1.68,94.00
+giacche,premium,105,3.23,a2df9753-72e3-4a80-a554-b688b059f34c,Giacca leggera con tasche in lino,Massimo Dutti,149.00,88.00,1.69,94.00
+giacche,premium,105,3.23,0cc07aca-e8c2-4006-b2e8-b664563c5bd9,Giacca corta imbottita con tasche,Massimo Dutti,79.95,45.00,1.78,92.00
+giacche,premium,105,3.23,d81760b9-c8a5-49df-b8de-b1097e623bfa,Giacca camicia imbottita leggera water repellent,Massimo Dutti,79.95,45.00,1.78,92.00
+giacche,premium,105,3.23,ebb7d65a-6116-4ceb-9acc-9ad35e53cf51,Giacca utility in denim,COS,129.00,72.00,1.79,91.00
+giacche,premium,105,3.23,963f1fc3-1f24-41b7-a9f1-6602a30dc3ef,Giacca da completo in fresco lana,Massimo Dutti,169.00,92.00,1.84,90.00
+giacche,premium,105,3.23,54591176-8e14-4bfa-9bf7-885b7d5d86eb,Giacca camicia con tasche 100% lino,Massimo Dutti,169.00,88.00,1.92,86.00
+giacche,premium,105,3.23,dcaeffde-4447-4e54-a3f3-b2c7d618765e,Giacca sahariana 100% lino,Massimo Dutti,169.00,88.00,1.92,86.00
+giacche,premium,105,3.23,a7de36f3-5494-4d96-b594-183ce2b13cb3,Giacca corta in lino a spina di pesce,Massimo Dutti,169.00,88.00,1.92,86.00
+giacche,premium,105,3.23,0ebd6297-d22e-47b8-9c88-b7e8b762a2bf,Giacca corta in lino,Massimo Dutti,169.00,88.00,1.92,86.00
+giubbotto,fast_fashion,15,0.73,c468bca0-3349-4006-a9a7-31dccad612bc,GIUBBOTTO DENIM Z1975,Zara,29.95,72.00,0.42,99.00
+giubbotto,fast_fashion,15,0.73,1ce8f347-8bca-4001-9a0a-f806931ec3ff,Giubbotto denim tasche 27087158,Mango,39.99,72.00,0.56,90.00
+giubbotto,fast_fashion,15,0.73,987ff206-9cea-4185-b69b-09ef2bb0fce8,GIUBBOTTO CON CAPPUCCIO RIMOVIBILE,Zara,39.95,63.00,0.63,78.00
+giubbotto,fast_fashion,15,0.73,ae781a85-60d0-4141-af99-81a05abcea92,Top gilet fiocchi,Mango,25.99,38.00,0.68,69.00
+gonna,fast_fashion,16,0.95,3c490c2e-550d-42ac-aece-d99e7a009b61,Gonna pantalone di lino,Mango,39.99,81.00,0.49,99.00
+gonna,fast_fashion,16,0.95,480e576d-c68d-4d2c-a076-3aaa869dc752,Gonna pieghe quadri,Mango,39.99,72.00,0.56,96.00
+gonna,fast_fashion,16,0.95,c1711c59-6838-4dc4-9ab2-9c11fe927cac,Gonna cotone dettaglio bottoni,Mango,39.99,72.00,0.56,96.00
+gonna,fast_fashion,16,0.95,63eeadfa-5249-41a9-97a0-5c632637f492,Gonna asimmetrica paillettes,Mango,45.99,72.00,0.64,89.00
+gonna,premium,77,1.55,a61ae49c-a99e-4f67-bb65-b9c276f9f907,Gonna svasata con tasca in misto lino,Massimo Dutti,59.95,71.00,0.84,98.00
+gonna,premium,77,1.55,ac1a484c-cf62-4812-ad4f-e7af110ea805,Gonna midi con dettaglio a pieghe,Massimo Dutti,59.95,66.00,0.91,97.00
+gonna,premium,77,1.55,98eb520c-b623-4746-9094-32e8165639c6,Gonna midi 100% lino con elastico in vita,Massimo Dutti,79.95,88.00,0.91,97.00
+gonna,premium,77,1.55,eb0c05c8-4e63-404d-b519-4c25809401e6,Gonna midi dritta in lino,Massimo Dutti,79.95,88.00,0.91,97.00
+gonna,premium,77,1.55,5a9a2717-28f5-4be9-8960-6642b0cb0f7e,Gonna midi in denim con godet,Massimo Dutti,69.95,75.00,0.93,96.00
+gonna,premium,77,1.55,0e5fa421-d927-4aaa-ac6e-af41f0d03c98,Gonna midi con dettaglio foulard,Massimo Dutti,69.95,72.00,0.97,95.00
+gonna,premium,77,1.55,f21105c8-0bce-4f88-8548-63965a6f9247,Gonna midi in denim barrel fit,Massimo Dutti,69.95,72.00,0.97,95.00
+gonna,premium,77,1.55,384c89a2-6678-4e28-b203-e0889a6b8767,Gonna midi a pieghe 800,Massimo Dutti,69.95,72.00,0.97,95.00
+gonna,premium,77,1.55,f2b6c64d-3255-4a34-938d-f36d50f0f474,Gonna midi a pieghe in cotone,Massimo Dutti,69.95,72.00,0.97,95.00
+gonna,premium,77,1.55,78799821-6d9e-4ed1-9cee-15d25baee163,Gonna midi morbida asimmetrica,Massimo Dutti,79.95,82.00,0.98,95.00
+gonna,premium,77,1.55,61b01a03-3fe8-4b7a-a657-cbb77523d2df,Gonna svasata a quadri,Massimo Dutti,89.95,88.00,1.02,93.00
+gonna,premium,77,1.55,489474a3-a8a3-4682-af7f-3ab5a83d0a50,Gonna midi plissettata total look a righe,Massimo Dutti,79.95,75.00,1.07,90.00
+gonna,premium,77,1.55,66e39179-22e4-4f1f-899a-de5e7788bf6e,Gonna midi morbida con dettaglio plissettato,Massimo Dutti,69.95,65.00,1.08,90.00
+gonna,premium,77,1.55,49517221-fe7a-4180-aa75-a250b4d80a77,Gonna midi a pieghe in misto cotone,Massimo Dutti,69.95,64.00,1.09,88.00
+gonna,premium,77,1.55,97998ce1-e1d1-4128-b6ff-6b8ece75ee01,Gonna midi godet in denim,Massimo Dutti,79.95,72.00,1.11,87.00
+gonna,premium,77,1.55,3079fd5c-32af-4f0f-8184-c53c95b07c84,Gonna midi in maglia di cotone,Massimo Dutti,79.95,72.00,1.11,87.00
+gonna,premium,77,1.55,edcb27fe-92c4-4805-b41d-048dddd382f2,Gonna midi in lino con pieghe e cintura,COS,99.00,88.00,1.13,86.00
+gonna,premium,77,1.55,2dbd96fb-f648-4a4f-892f-b188b35a8c03,Gonna midi dritta con lino,Massimo Dutti,79.95,71.00,1.13,86.00
+gonna,premium,77,1.55,c2e4b98e-c23c-4404-bc84-5ce5d5e5f75d,Gonna midi svasata di lino,Massimo Dutti,99.95,88.00,1.14,85.00
+gonna,premium,77,1.55,75f909f6-dadf-4bc7-adc9-3e76ac6aea27,Gonna midi a strati con contrasto in lino,Massimo Dutti,99.95,88.00,1.14,85.00
+gonna,premium,77,1.55,1af0c634-96c7-467a-ad77-b462f76d68c3,Gonna midi fluida 100% lino,Massimo Dutti,99.95,88.00,1.14,85.00
+gonna,premium,77,1.55,cd11c3c1-8a1a-4ddb-bc1a-769bbac15736,Gonna midi a balze 100% lino,Massimo Dutti,99.95,88.00,1.14,85.00
+maglione,fast_fashion,36,0.73,d07ed117-f89d-40e2-9e07-870e8898fdd5,Maglione Cotone Girocollo,Uniqlo,9.90,53.00,0.19,100.00
+maglione,fast_fashion,36,0.73,96f98e33-c4ac-4e62-aa7c-d95dc735d64c,Maglione con Colletto Maniche Corte a Righe,Uniqlo,19.90,70.00,0.28,99.00
+maglione,fast_fashion,36,0.73,eb52f55a-dda0-4e00-9b92-46c0e11d2d90,Maglione Pointelle Girocollo Maniche Corte,Uniqlo,29.90,72.00,0.42,86.00
+maglione,fast_fashion,36,0.73,1480f064-290d-4b1c-b4b0-551e3c1df0ec,Maglione Cotone Girocollo Senza Maniche,Uniqlo,29.90,72.00,0.42,86.00
+maglione,fast_fashion,36,0.73,41f41ec8-275a-4fe9-a220-445f00fd113a,Maglione 100% Merino Girocollo,Uniqlo,39.90,92.00,0.43,82.00
+maglione,fast_fashion,36,0.73,2132e5bc-b3ee-471b-9f73-5936ac867785,Maglione 100% Merino Collo Alto,Uniqlo,39.90,92.00,0.43,82.00
+maglione,fast_fashion,36,0.73,b5c11e79-8422-44bc-85f9-695eadde0f3c,Maglione Cotone Pointelle con Colletto Maniche Corte,Uniqlo,34.90,72.00,0.48,69.00
+maglione,fast_fashion,36,0.73,166fc68b-360b-46f3-a03f-c00aba04a7ec,Maglione Maglia 3D Senza Cuciture Cotone Maniche Corte,Uniqlo,34.90,72.00,0.48,69.00
+maglione,fast_fashion,36,0.73,2cefcb86-9509-45c9-8b3a-f57245c0abcc,Maglione Cotone Pointelle con Colletto Maniche Corte a Righe,Uniqlo,34.90,72.00,0.48,69.00
+pantaloni,fast_fashion,38,0.68,4e3b1b41-18e9-4a85-80cf-ad2b9c78b6f0,PANTALONI CAPRI,Zara,17.95,72.00,0.25,100.00
+pantaloni,fast_fashion,38,0.68,ff893788-3d23-4ca7-96fb-dc7a4256d0d0,Jeans Ultra Elasticizzati Skinny,Uniqlo,19.90,68.00,0.29,100.00
+pantaloni,fast_fashion,38,0.68,7a55f693-6e80-4e9a-8369-42899d3a7a9e,PANTALONI INTERLOCK,Zara,25.95,63.00,0.41,97.00
+pantaloni,fast_fashion,38,0.68,96e78280-560e-447a-b6da-3dd1cfd0547a,PANTALONI DRITTI CON LINO,Zara,32.95,71.00,0.46,92.00
+pantaloni,fast_fashion,38,0.68,c4320576-bd97-44b8-a52e-46bde573c53d,PANTALONI SLIM CON LINO,Zara,35.95,71.00,0.51,86.00
+pantaloni,fast_fashion,38,0.68,eada2b67-75a0-4891-a5ef-22103dd87f38,PANTALONI CON LINO PINCE CINTURA,Zara,35.95,71.00,0.51,86.00
+pantaloni,fast_fashion,38,0.68,0dfa1f4d-f83e-4039-b32a-f775269ae737,PANTALONI FLARE LINO ZW COLLECTION,Zara,45.95,88.00,0.52,83.00
+pantaloni,fast_fashion,38,0.68,0bcdc0b4-d91c-4e87-b984-d3a48d3916ef,PANTALONI BARREL LINO ZW COLLECTION,Zara,45.95,88.00,0.52,83.00
+pantaloni,fast_fashion,38,0.68,1a9f0da7-08a7-4955-bf0e-241117942c6b,Pantaloni diritti lino,Mango,45.99,88.00,0.52,83.00
+pantaloni,fast_fashion,38,0.68,7d900b4b-b08f-4a0a-a64d-5edc1ae3bd54,Jeans alla Caviglia Comodi Elasticizzati,Uniqlo,29.90,57.00,0.52,83.00
+pantaloni,premium,143,1.14,d71e2020-8d21-424e-873d-3e8b1a1726ce,Pantaloni da completo in lino 251,Massimo Dutti,59.95,88.00,0.68,95.00
+pantaloni,premium,143,1.14,6eae12a9-0bb2-4f3a-bbd8-91c5dd7c8570,Pantaloni straight fit misto cotone,Massimo Dutti,49.95,72.00,0.69,95.00
+pantaloni,premium,143,1.14,26995d1e-5dc1-4e3d-82bb-fa788c83b7f0,Pantaloni in twill di cotone con vita elasticizzata,Massimo Dutti,49.95,72.00,0.69,95.00
+pantaloni,premium,143,1.14,0ecff6f0-c867-4f1c-9058-9e6b5a773c23,Pantaloni barrel fit morbidi,Massimo Dutti,59.95,82.00,0.73,92.00
+pantaloni,premium,143,1.14,028bf0d0-5dd2-4839-850f-e0725a8ebe7c,Pantaloni kick flare cropped lino,Massimo Dutti,69.95,88.00,0.79,87.00
+pantaloni,premium,143,1.14,e747b2ae-7b42-41b4-afca-54bf79d6a6a9,Pantaloni gamba larga con elastico 100% lino,Massimo Dutti,69.95,88.00,0.79,87.00
+pantaloni,premium,143,1.14,452f14c0-9734-4b3f-a6b1-db3dcd745c79,Pantaloni morbidi 100% lino,Massimo Dutti,69.95,88.00,0.79,87.00
+pantaloni,premium,143,1.14,93c45db3-afc1-4f4f-8c83-720d5a18dadc,Pantaloni relax fit 100% lino,Massimo Dutti,69.95,88.00,0.79,87.00
+pantaloni,premium,143,1.14,600d5063-9b9d-449a-b751-dac59c4026b0,"Bermuda con elastico in lino, total look",Massimo Dutti,69.95,88.00,0.79,87.00
+pantaloni,premium,143,1.14,0bede667-b486-4c68-8ad7-b96ddf206f70,Pantaloni wide fit pieghe lino,Massimo Dutti,69.95,88.00,0.79,87.00
+pantaloni,premium,143,1.14,c1ff0ee1-ad48-47bb-a79f-48d1e083ab3d,Pantaloni da completo morbidi in lino 700,Massimo Dutti,69.95,88.00,0.79,87.00
+pantaloni,premium,143,1.14,4ae3f4fa-3521-4e08-8dd3-4c997639ac6e,Pantaloni dritti con dettaglio di pieghe,Massimo Dutti,49.95,61.00,0.82,85.00
+pantaloni,premium,143,1.14,0bbc6bfc-48a9-475c-a2cb-2fe889c49437,Pantaloni flare fit cropped incerati,Massimo Dutti,59.95,72.00,0.83,83.00
+pantaloni,premium,143,1.14,87953d56-9f09-4762-8230-1365770275d5,Pantaloni slim fit in cotone,Massimo Dutti,59.95,72.00,0.83,83.00
+pantaloni,premium,143,1.14,c91ba686-285a-439f-9ad6-a918a3d417cc,Pantaloni straight fit a vita alta incerati,Massimo Dutti,59.95,72.00,0.83,83.00
+pantaloni,premium,143,1.14,68ab3197-5a68-4337-9304-803a2b729fa2,Bermuda con dettaglio in vita in cotone,Massimo Dutti,59.95,72.00,0.83,83.00
+pantaloni,premium,143,1.14,1bbd4852-4dd7-42ea-9038-57f13b3078d5,Bermuda tasca misto cotone,Massimo Dutti,59.95,72.00,0.83,83.00
+pantaloni,premium,143,1.14,12625425-291b-4f25-aaba-4d2290f69085,Pantaloni morbidi barrel fit,Massimo Dutti,69.95,83.00,0.84,82.00
+pantaloni,premium,143,1.14,f184fa65-344e-4235-8749-c716c098a667,Pantaloni morbidi gamba larga con pince,Massimo Dutti,69.95,82.00,0.85,81.00
+pantaloni,premium,143,1.14,76e2caf3-8ccd-4412-a61d-ccdff3db08ad,Pantaloni lino con dettaglio cucitura,Massimo Dutti,69.95,80.00,0.87,78.00
+pantaloni,premium,143,1.14,a6fed5f0-8dea-4f66-8cd0-7f2e8242e922,Bermuda in tessuto tecnico,Massimo Dutti,69.95,79.00,0.89,77.00
+pantaloni,premium,143,1.14,13fa3fe2-bca4-4dcc-9c9e-3c919970877c,Pantaloni tapered fit cotone e lino,Massimo Dutti,69.95,79.00,0.89,77.00
+pantaloni,premium,143,1.14,e6ac5883-82fb-47be-a5d4-2961aa0900d5,Pantaloni barrel in lino con vita elasticizzata,COS,79.00,88.00,0.90,75.00
+pantaloni,premium,143,1.14,761e8393-340e-4b9b-b718-7942a5654c08,Pantaloni culotte in lino,COS,79.00,88.00,0.90,75.00
+pantaloni,premium,143,1.14,c336ec27-a659-48fb-9482-37fc297698bf,Pantaloni tapered fit in cotone 401,Massimo Dutti,69.95,77.00,0.91,74.00
+pantaloni,premium,143,1.14,af965c0e-795d-4665-bcbd-c8608c726dd4,Pantaloni gamba larga con dettaglio tasche in lino,Massimo Dutti,79.95,88.00,0.91,74.00
+pantaloni,premium,143,1.14,6f86ca1e-cf24-4113-8442-ed6295007655,Pantaloni loose fit in lino,Massimo Dutti,79.95,88.00,0.91,74.00
+pantaloni,premium,143,1.14,818ccf30-fa6e-4955-bd68-9707cde3ed45,Bermuda lunghi in lino 800,Massimo Dutti,79.95,88.00,0.91,74.00
+pantaloni,premium,143,1.14,1e0e9dc2-67c0-4f38-b25a-f6d3afde4f4f,Pantaloni morbidi a gamba larga total look,Massimo Dutti,69.95,76.00,0.92,72.00
+pantaloni,premium,143,1.14,04790aa7-7628-4355-bd00-65164f16ead4,Pantaloni popeline barrel fit cotone lino,Massimo Dutti,69.95,75.00,0.93,71.00
+pantaloni,premium,143,1.14,6dc1efbc-34d8-4462-8281-8ce082db7e3f,Pantaloni palazzo con pieghe 452,Massimo Dutti,79.95,85.00,0.94,70.00
+pantaloni,premium,143,1.14,7a00b868-c872-4aac-90d6-365ad5d01b15,Pantaloni relax fit in cotone,Massimo Dutti,69.95,72.00,0.97,66.00
+pantaloni,premium,143,1.14,64544145-5e24-4c0f-9440-887524f115a0,Pantaloni gamba larga in cotone,Massimo Dutti,69.95,72.00,0.97,66.00
+pantaloni,premium,143,1.14,ced30b2b-dd74-4b7a-a64b-4ef5e68b7235,Pantaloni barrel fit misto cotone,Massimo Dutti,69.95,72.00,0.97,66.00
+pantaloni,premium,143,1.14,d50319d0-bb65-4e5e-a43f-d96829656a1b,Pantaloni con doppia pince in cotone,Massimo Dutti,69.95,72.00,0.97,66.00
+pantaloni,premium,143,1.14,bbc57e31-df7a-48fa-8266-7b1193987b64,Pantaloni tapered fit in cotone 500,Massimo Dutti,69.95,72.00,0.97,66.00
+pantaloni,premium,143,1.14,af24eabd-25b4-4639-9d8d-64087919789f,Pantaloni slim fit in misto cotone 401,Massimo Dutti,69.95,72.00,0.97,66.00
+pantaloni,premium,143,1.14,7ce5f263-8444-4263-af86-31deaa1681e5,Bermuda corti total look con lino,Massimo Dutti,69.95,72.00,0.97,66.00
+parka,premium,11,3.31,feade424-291c-4b6f-8afc-85649399d992,Parka con tasche in misto cotone,Massimo Dutti,149.00,64.00,2.33,89.00
+parka,premium,11,3.31,7d6f117e-a9d9-4ab1-801c-56b416c3ea97,Parka con dettaglio a sbuffo,Massimo Dutti,149.00,60.00,2.48,84.00
+parka,premium,11,3.31,3a46ed92-0138-43ae-8263-a827b204fbc0,Parka imbottita con dettaglio sul collo,Massimo Dutti,149.00,60.00,2.48,84.00
+polo,premium,163,1.24,a91c41dc-b3a7-4fe7-a839-9a69fda8b095,Polo a maniche corte con dettaglio con cerniera,Massimo Dutti,29.95,68.00,0.44,100.00
+polo,premium,163,1.24,1abdbfd7-fb30-4e2c-93aa-2d8daa9321f9,Maglia a polo a righe in cotone 401,Massimo Dutti,39.95,72.00,0.55,100.00
+polo,premium,163,1.24,fc4fbd34-c63c-4e41-a839-0a24e37deb6b,Polo in piqué con microstruttura in cotone,Massimo Dutti,39.95,72.00,0.55,100.00
+polo,premium,163,1.24,18cb2098-8568-43bd-b41d-a27118332872,Polo a maniche corte 100% lino,Massimo Dutti,49.95,88.00,0.57,100.00
+polo,premium,163,1.24,8cb8a512-64c0-47c1-a168-e0ee06926350,Blusa con collo a polo in lino,Massimo Dutti,49.95,88.00,0.57,100.00
+polo,premium,163,1.24,ced55c89-1a2f-44b8-b2f4-34232b0bd172,Camicia a maniche corte in lino e cotone,Massimo Dutti,49.95,80.00,0.62,99.00
+polo,premium,163,1.24,7d7a9982-ece3-4888-8b83-45e3b77ad5d4,Polo slim in cotone a coste,COS,45.00,72.00,0.63,99.00
+polo,premium,163,1.24,25529ddd-5604-4f7c-a681-6c8a9ce58dad,Polo a maniche corte in misto cotone,Massimo Dutti,45.95,73.00,0.63,99.00
+polo,premium,163,1.24,60333311-7d97-433a-8a6c-316f2220523c,Polo in misto cotone e lino taglio rilassato,COS,49.00,77.00,0.64,99.00
+polo,premium,163,1.24,c7838ab3-c5fd-45af-8ff8-4d9e69fc9ce4,Polo a righe a maniche corte,Massimo Dutti,45.95,72.00,0.64,99.00
+polo,premium,163,1.24,0ec5fe53-168a-428e-af5c-e36273b40616,Polo a maniche corte con dettagli intrecciati,Massimo Dutti,45.95,72.00,0.64,99.00
+polo,premium,163,1.24,81586940-ca73-4f36-a18f-037b3bf27be7,Polo a righe in cotone,Massimo Dutti,45.95,72.00,0.64,99.00
+polo,premium,163,1.24,d55e37ab-d57a-4001-9551-efae3997d234,Polo in maglia a righe 100% cotone,Massimo Dutti,45.95,72.00,0.64,99.00
+polo,premium,163,1.24,96af4042-8109-49b3-97c5-6ca816fbebd7,Polo a maniche corte 100% cotone,Massimo Dutti,45.95,72.00,0.64,99.00
+polo,premium,163,1.24,b974bedb-890e-413e-9875-f2852288f4bf,Maglia a polo con dettaglio sul colletto,Massimo Dutti,39.95,62.00,0.64,99.00
+polo,premium,163,1.24,9c34e0fc-3378-4f24-8168-7cbcb96283f2,Maglia a polo scollo a V in misto cotone,Massimo Dutti,49.95,74.00,0.68,98.00
+polo,premium,163,1.24,3cada76a-d972-4cba-8e05-286b253edef3,Polo in cotone interlock 1327667002,COS,49.00,72.00,0.68,98.00
+polo,premium,163,1.24,911be03f-4c2d-4a83-a38b-962d7b9c6d23,Polo in cotone interlock,COS,49.00,72.00,0.68,98.00
+polo,premium,163,1.24,40031162-d4ad-49f7-aa40-af56a5eac9ad,Polo a maniche lunghe 100% lino,Massimo Dutti,59.95,88.00,0.68,98.00
+polo,premium,163,1.24,2809e065-928b-4878-9a02-a44ebada70c0,Polo in maglia con dettaglio di tasca,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,fe7bd485-68f2-44e0-855e-c99311a213cb,Maglia a polo in cotone 401,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,71745356-79b6-4623-939e-bb9804d88bc1,Maglia a polo a trecce,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,1f1a536f-fc28-47c4-bd12-5d75b9b21785,Polo in maglia regular cotone,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,4ad6f565-d317-4a81-96df-f6264ed968ce,Polo in maglia di cotone,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,2e614ff4-764b-4755-9282-71fab8dd8b7f,Polo in maglia a righe a contrasto,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,8bd35ed1-e8c3-45ff-88ae-78cdfb49f365,Polo a maniche lunghe con dettaglio a coste,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,dab2c174-210a-406f-aeb9-43bef126214a,Maglia a polo testurizzata 100% cotone 830,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,9d7c4aa4-bcbf-4e23-bce2-465627543445,Polo in maglia a righe di cotone,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,2a14afb1-eb7e-4ac5-9101-81d7aa4dab22,Maglia a polo in jacquard,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,5c7cc173-1d14-44d7-88a6-4470e289b9aa,Polo in maglia a trecce 100% cotone,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,e891a2b3-9e2c-485c-9080-b093b453aa5f,Maglia a polo testurizzata 100% cotone 401,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,46ec4d11-3850-422b-9df9-9ae7a55e027b,Polo in maglia a costine di cotone,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,d57042d2-4ef2-4d23-bb41-99e745dcc91f,Polo strutturata in piqué a maniche lunghe,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,d8bee7aa-51a8-4853-a5f9-6044d4477853,Polo a maniche lunghe a righe in cotone,Massimo Dutti,49.95,72.00,0.69,98.00
+polo,premium,163,1.24,8ce9f013-0ae6-43e3-b53a-ccb09044fa1f,Maglia a polo in cotone e lino - LIMITED EDITION,Massimo Dutti,59.95,81.00,0.74,97.00
+polo,premium,163,1.24,75f46282-fcf3-48c5-a8f2-5d72a3a2a9cd,Polo in maglia a maniche corte in cotone e lino,Massimo Dutti,59.95,80.00,0.75,96.00
+polo,premium,163,1.24,6bee56d4-45c2-4af9-90e8-9d0880610c47,Polo in maglia a maniche corte misto lana,Massimo Dutti,59.95,80.00,0.75,96.00
+polo,premium,163,1.24,b103bb8b-2723-4fe2-80a3-dd94d979ebaa,Polo in maglia di lino e lana merino,COS,69.00,90.00,0.77,96.00
+polo,premium,163,1.24,28cc2f1b-4246-4e5a-b071-e3fac1ddea35,Maglia stile polo,Massimo Dutti,49.95,65.00,0.77,95.00
+polo,premium,163,1.24,da1785c2-e000-4a0d-86dd-a2c936312808,Polo in maglia con scollo a v,Massimo Dutti,69.95,89.00,0.79,95.00
+polo,premium,163,1.24,3b7bd9b5-21fa-4ee1-8adb-3684370d3e84,Maglia stile polo in misto cotone,Massimo Dutti,59.95,76.00,0.79,94.00
+t-shirt,fast_fashion,48,0.28,f203ff1c-d825-4349-a450-e56decc4db2d,TOP CANOLÉ SENZA MANICHE,Zara,7.95,72.00,0.11,100.00
+t-shirt,fast_fashion,48,0.28,3a87fce9-a735-4101-a25c-7624ea892407,MAGLIETTA CROPPED MANICHE CORTE,Zara,6.95,61.00,0.11,100.00
+t-shirt,fast_fashion,48,0.28,dea90c01-4673-4282-9c17-d87b5447f48e,TOP A COSTE CON SPALLINE,Zara,9.95,72.00,0.14,97.00
+t-shirt,fast_fashion,48,0.28,2b6fb76b-cf7b-475c-ba55-5bdef3744e28,T-shirt DRY Scollo a V,Uniqlo,7.90,56.00,0.14,97.00
+t-shirt,fast_fashion,48,0.28,34bec703-bfc3-4b19-b5e4-321b16713e14,MAGLIETTA COTONE SENZA MANICHE,Zara,7.95,53.00,0.15,95.00
+t-shirt,fast_fashion,48,0.28,c58e0b79-9815-44a6-abe1-0ccf4f1bbc65,T-shirt Maniche ad Aletta,Uniqlo,9.90,64.00,0.15,93.00
+t-shirt,fast_fashion,48,0.28,ab775025-af8d-4775-a6c2-a1f296614647,Maglia Jersey Girocollo,Uniqlo,12.90,72.00,0.18,83.00
+t-shirt,fast_fashion,48,0.28,8c04028f-cd88-4871-8957-e0f17795134f,T-shirt Girocollo Taglio Corto a Righe,Uniqlo,12.90,72.00,0.18,83.00
+t-shirt,fast_fashion,48,0.28,20cec7ae-01a4-4ce2-8129-cd554a5b9678,T-shirt Bicolore,Uniqlo,12.90,72.00,0.18,83.00
+t-shirt,fast_fashion,48,0.28,6abdccd6-4690-49fa-a57c-07c24f0c24f7,TOP CORTO A COSTINE,Zara,12.95,72.00,0.18,83.00
+t-shirt,fast_fashion,48,0.28,1d0ff258-c00d-4d8f-a2f7-398a8e754fe5,MAGLIETTA RAGLAN A RIGHE,Zara,12.95,63.00,0.21,68.00
+t-shirt,fast_fashion,48,0.28,1a92e516-a763-45ad-98d1-c8a488e06588,T-shirt Cotone Girocollo,Uniqlo,14.90,72.00,0.21,67.00
+t-shirt,fast_fashion,48,0.28,08eda91c-89f2-400e-b4ed-415356a00c24,T-shirt Jersey Fiammato Scollo a V,Uniqlo,14.90,72.00,0.21,67.00
+t-shirt,fast_fashion,48,0.28,8aeb1d94-3e52-4041-a6ee-9784f0e5c140,T-shirt a Coste Girocollo Taglio Corto,Uniqlo,14.90,72.00,0.21,67.00
+t-shirt,fast_fashion,48,0.28,3effc7ed-55ec-4917-a534-400f3e2fb0f7,DONNA T-SHIRT,Uniqlo,14.90,72.00,0.21,67.00
+t-shirt,fast_fashion,48,0.28,51438d1d-148b-4741-9714-cb70dd6998ed,T-shirt Cotone Girocollo,Uniqlo,14.90,72.00,0.21,67.00
+t-shirt,premium,108,0.55,1e210926-a8d3-4af8-ad21-1cd07c72f3e8,Canotta slim in cotone a coste 1150895022,COS,19.00,72.00,0.26,100.00
+t-shirt,premium,108,0.55,7c42bc16-5afe-4fa8-86c3-595492e6f166,Canotta slim in cotone a coste,COS,19.00,72.00,0.26,100.00
+t-shirt,premium,108,0.55,a570599a-46e6-4fd6-9ed1-c9fd0955c211,Canotta a righe lino,Massimo Dutti,29.95,88.00,0.34,96.00
+t-shirt,premium,108,0.55,68c2616a-ef6b-4397-9f41-26beb50bddd2,Canotta misto lino,Massimo Dutti,29.95,88.00,0.34,96.00
+t-shirt,premium,108,0.55,088a00ea-f262-4857-bf39-d19b5c0d83b7,Top con spalline 100% lino,Massimo Dutti,29.95,88.00,0.34,96.00
+t-shirt,premium,108,0.55,849c4ea2-2b8b-4039-ac64-5c2bdcb55dd9,Canotta in cotone a coste,COS,25.00,72.00,0.35,95.00
+t-shirt,premium,108,0.55,9f543f00-3f89-4cbf-ae72-1533b14b2b43,Canotta in misto lino,Massimo Dutti,29.95,81.00,0.37,92.00
+t-shirt,premium,108,0.55,78b8c5c3-c55f-40e8-9b42-eca24e0387b0,T-shirt in cotone leggero con taglio rilassato 1294695008,COS,29.00,72.00,0.40,87.00
+t-shirt,premium,108,0.55,91420bc7-0de0-43cf-802c-9207db2372b4,T-shirt in cotone leggero con taglio rilassato 1294695005,COS,29.00,72.00,0.40,87.00
+t-shirt,premium,108,0.55,23529b32-0216-466e-a19d-ad88a4e65545,T-shirt in cotone leggero con taglio rilassato 1294695017,COS,29.00,72.00,0.40,87.00
+t-shirt,premium,108,0.55,b1592fbe-bbf9-43ba-b02c-9b8a2ddd2fd6,T-shirt in cotone leggero con taglio rilassato,COS,29.00,72.00,0.40,87.00
+t-shirt,premium,108,0.55,72725320-8f1f-4c93-b13e-8c44c93e39ac,Maglietta a maniche corte 100% cotone mercerizzato,Massimo Dutti,29.95,72.00,0.42,84.00
+t-shirt,premium,108,0.55,98f5b407-272b-434a-b8ee-a535e97fd592,Maglietta in maglia a maniche corte 100% cotone,Massimo Dutti,29.95,72.00,0.42,84.00
+t-shirt,premium,108,0.55,badce2eb-5100-4fcb-b628-2ed19bad414c,Maglietta con scollo a barchetta 100% cotone,Massimo Dutti,29.95,72.00,0.42,84.00
+t-shirt,premium,108,0.55,10087690-14d5-411c-a6b7-01b6fcc2b95a,Top con spalline e scollo a barca,Massimo Dutti,29.95,72.00,0.42,84.00
+t-shirt,premium,108,0.55,6f5cf3e5-8451-46ea-ba50-8f46487ffd4c,Top halter in misto cotone,Massimo Dutti,29.95,72.00,0.42,84.00
+t-shirt,premium,108,0.55,71e87505-a8e4-4a78-aed6-f0060f1117d2,Maglietta a maniche corte in 100% cotone,Massimo Dutti,29.95,72.00,0.42,84.00
+t-shirt,premium,108,0.55,49e64f55-3d0d-446c-aaa8-9300f3b37640,Canotta 100% cotone 722,Massimo Dutti,29.95,72.00,0.42,84.00
+t-shirt,premium,108,0.55,ede0f3a8-ffcd-4f78-9ed5-474ba1fe12ce,Canotta 100% cotone 251,Massimo Dutti,29.95,72.00,0.42,84.00
+t-shirt,premium,108,0.55,8259066f-9d89-42a3-8c9c-8f2550f0454c,Maglietta semitrasparente con collo 100% cotone,Massimo Dutti,29.95,72.00,0.42,84.00
+t-shirt,premium,108,0.55,aee61f09-f986-4d63-95ee-bff3bf0375d8,Maglietta interlock a collo rotondo 100% cotone,Massimo Dutti,29.95,72.00,0.42,84.00
+t-shirt,premium,108,0.55,407fa88f-4487-4bf4-972d-8fecd90b4e7c,Maglietta a maniche corte in misto cotone 523,Massimo Dutti,29.95,68.00,0.44,79.00
+t-shirt,premium,108,0.55,84636fc6-ba3e-4b22-a85a-4740f1c89950,T-shirt a maniche corte in lino,Massimo Dutti,39.95,88.00,0.45,75.00
+t-shirt,premium,108,0.55,c6a16df1-6ee2-4802-9224-91b3bfb41de0,T-shirt con scollo a V in lino,Massimo Dutti,39.95,88.00,0.45,75.00
+t-shirt,premium,108,0.55,96c0926e-d0aa-4339-bc69-3273ccf33e96,T-shirt a righe regular fit 100% lino,Massimo Dutti,39.95,88.00,0.45,75.00
+t-shirt,premium,108,0.55,2d1e01bd-f7b4-455e-abdb-f5b0eee1405b,Top con spalline in canneté misto seta,Massimo Dutti,39.95,88.00,0.45,75.00
+t-shirt,premium,108,0.55,6686d103-cd32-43ab-890b-a18db203da4a,Top con collo drappeggiato e dettaglio gioiello,Massimo Dutti,39.95,88.00,0.45,75.00
+trench,premium,15,3.28,4c6b82a2-e8df-48b1-ab6c-e0319390d379,Trench in cotone con maniche roll-up,Massimo Dutti,169.00,72.00,2.35,86.00
+trench,premium,15,3.28,b629c632-6f4b-4219-af8e-c203f1df9966,Trench corto in cotone con cintura,COS,179.00,72.00,2.49,80.00
+trench,premium,15,3.28,e7e33445-bd0f-42bd-98a9-b012a3b5f07f,Trench tecnico a collo alto,Massimo Dutti,169.00,60.00,2.82,66.00
+trench,premium,15,3.28,73f95ae9-ae1c-424d-8cd4-4145a1dda22d,Trench tecnico in cotone,Massimo Dutti,169.00,60.00,2.82,66.00
+vestito,fast_fashion,10,0.87,815de7d0-9797-4c36-ad0d-86a49462d997,Vestito cotone premaman,Mango,25.99,72.00,0.36,100.00
+vestito,fast_fashion,10,0.87,903c7cc0-f1a4-4646-8012-5ecbf148336e,Vestito lungo premaman,Mango,29.99,39.00,0.77,81.00
+vestito,fast_fashion,10,0.87,e3383d24-c7b5-465e-9763-374f149c301a,Vestito camicione lino fiocco,Mango,69.99,88.00,0.80,77.00
+vestito,premium,68,1.98,22d6aedf-bf05-4429-aad5-bde5762c963a,Vestito midi con dettaglio piega sulla spalla,Massimo Dutti,69.95,82.00,0.85,100.00
+vestito,premium,68,1.98,7bfbc4bc-a557-4c52-82bb-a10237031447,Abito mini a trapezio in lino,COS,89.00,88.00,1.01,99.00
+vestito,premium,68,1.98,d6845339-aa4f-4ecf-b271-e53979c38c9b,Vestito midi 100% lino,Massimo Dutti,89.95,88.00,1.02,99.00
+vestito,premium,68,1.98,1631f72b-db00-4251-bf1d-f926d9145c29,Vestito midi con collo halter e dettaglio fiocco,Massimo Dutti,89.95,87.00,1.03,99.00
+vestito,premium,68,1.98,3b1ed5ac-b9d8-4019-8b5d-cd5efc7d91d4,Vestito tuta corto fluido in lino,Massimo Dutti,79.95,73.00,1.10,98.00
+vestito,premium,68,1.98,85765000-04d4-4801-b467-94999b6d466c,Vestito midi fluido con spalline sottili,Massimo Dutti,99.95,88.00,1.14,98.00
+vestito,premium,68,1.98,01920271-de39-4ebe-aa95-5348978a76b9,Vestito midi fluido 100% lino,Massimo Dutti,99.95,88.00,1.14,98.00
+vestito,premium,68,1.98,41f7782a-808f-4ba4-a04a-29a4d8164b58,Vestito midi 100% lino con dettaglio sulla spalla,Massimo Dutti,99.95,88.00,1.14,98.00
+vestito,premium,68,1.98,d446a043-e04b-4767-8bd2-215635d16581,Vestito mini fluido,Massimo Dutti,79.95,69.00,1.16,97.00
+vestito,premium,68,1.98,e1f3acd5-15dd-4f67-b3bc-afc609582fcb,Vestito tunica fluido total look,Massimo Dutti,89.95,76.00,1.18,97.00
+vestito,premium,68,1.98,b46f100e-7c3d-4cc5-a789-0e24973be509,Vestito mini con dettaglio spalline annodate,Massimo Dutti,79.95,66.00,1.21,96.00
+vestito,premium,68,1.98,89035134-0e27-4a2f-9fb3-5e64a5c05934,Vestito in maglia a maniche lunghe doppio strato,Massimo Dutti,89.95,72.00,1.25,95.00
+vestito,premium,68,1.98,f90b227b-fd2b-4632-957d-7db3e0462c56,Vestito midi 100% cotone con elastico in vita,Massimo Dutti,89.95,72.00,1.25,95.00
+vestito,premium,68,1.98,65b4806f-550b-4762-911f-35348db36107,Abito lungo fluido in lino,Massimo Dutti,89.95,71.00,1.27,95.00
+vestito,premium,68,1.98,06684d8c-7b5a-4268-836d-ed0ec76a1d9b,Vestito mini con scollo rotondo,Massimo Dutti,89.95,71.00,1.27,95.00
+vestito,premium,68,1.98,1cad8432-901d-409e-9e9a-c9d081047080,Vestito morbido a maniche corte,Massimo Dutti,69.95,52.00,1.35,92.00
+vestito,premium,68,1.98,2b5a52ae-0f5a-413c-a7b7-207f7c83a232,Vestito midi maglia a contrasto 100% cotone,Massimo Dutti,99.95,72.00,1.39,90.00
+vestito,premium,68,1.98,b851619e-fd56-4ea1-aa01-3fab8a3f3c96,Vestito midi scampanato in popeline,Massimo Dutti,99.95,72.00,1.39,90.00
+A new version of Supabase CLI is available: v2.98.2 (currently installed v2.90.0)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
