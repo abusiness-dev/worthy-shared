@@ -53,13 +53,16 @@ __export(index_exports, {
   getElastaneDescription: () => getElastaneDescription,
   getFiberDescription: () => getFiberDescription,
   isElastane: () => isElastane,
+  isSafeHttpsUrl: () => isSafeHttpsUrl,
   isValidBarcode: () => isValidBarcode,
   isValidEAN13: () => isValidEAN13,
   isValidUPC: () => isValidUPC,
   manufacturingLens: () => manufacturingLens,
   manufacturingScoreFor: () => manufacturingScoreFor,
   qprLens: () => qprLens,
+  validateAffiliateUrl: () => validateAffiliateUrl,
   validateComposition: () => validateComposition,
+  validatePhotoUrls: () => validatePhotoUrls,
   validatePrice: () => validatePrice,
   validateProduct: () => validateProduct,
   verdictFromScore: () => verdictFromScore
@@ -681,6 +684,34 @@ function bonusFor(id) {
   return cert ? cert.bonus_points : 0;
 }
 
+// src/validation/urlValidation.ts
+var SAFE_HTTPS_URL_RE = /^https:\/\/[^\s]+$/i;
+var MAX_URL_LENGTH = 2048;
+function isSafeHttpsUrl(url) {
+  if (typeof url !== "string") return false;
+  const trimmed = url.trim();
+  return trimmed.length > 0 && trimmed.length <= MAX_URL_LENGTH && SAFE_HTTPS_URL_RE.test(trimmed);
+}
+function validateAffiliateUrl(url) {
+  if (url == null || url.trim() === "") return { valid: true };
+  if (!isSafeHttpsUrl(url)) {
+    return { valid: false, error: "L'affiliate URL deve essere un URL https:// valido" };
+  }
+  return { valid: true };
+}
+function validatePhotoUrls(urls) {
+  if (urls == null) return { valid: true };
+  if (!Array.isArray(urls)) {
+    return { valid: false, error: "photo_urls deve essere un array di URL" };
+  }
+  for (const u of urls) {
+    if (u != null && u.trim() !== "" && !isSafeHttpsUrl(u)) {
+      return { valid: false, error: `photo_url non valido (ammessi solo https://): ${u}` };
+    }
+  }
+  return { valid: true };
+}
+
 // src/validation/productValidation.ts
 var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 var HTML_TAG_RE = /<[^>]+>/;
@@ -715,6 +746,10 @@ function validateProduct(data) {
   if (!data.composition || !Array.isArray(data.composition) || data.composition.length === 0) {
     errors.push("La composizione \xE8 obbligatoria e deve contenere almeno una fibra");
   }
+  const affiliate = validateAffiliateUrl(data.affiliate_url);
+  if (!affiliate.valid && affiliate.error) errors.push(affiliate.error);
+  const photos = validatePhotoUrls(data.photo_urls);
+  if (!photos.valid && photos.error) errors.push(photos.error);
   return { valid: errors.length === 0, errors };
 }
 
@@ -841,13 +876,16 @@ function isValidBarcode(code) {
   getElastaneDescription,
   getFiberDescription,
   isElastane,
+  isSafeHttpsUrl,
   isValidBarcode,
   isValidEAN13,
   isValidUPC,
   manufacturingLens,
   manufacturingScoreFor,
   qprLens,
+  validateAffiliateUrl,
   validateComposition,
+  validatePhotoUrls,
   validatePrice,
   validateProduct,
   verdictFromScore

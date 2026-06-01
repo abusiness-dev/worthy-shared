@@ -23,18 +23,18 @@ ON CONFLICT (slug) DO NOTHING;
 -- ============================================================
 
 INSERT INTO brands (id, name, slug, origin_country, market_segment) VALUES
-  (gen_random_uuid(), 'Zara',           'zara',           'Spagna',   'fast'),
-  (gen_random_uuid(), 'H&M',            'h-and-m',        'Svezia',   'fast'),
-  (gen_random_uuid(), 'Uniqlo',         'uniqlo',         'Giappone', 'fast'),
+  (gen_random_uuid(), 'Zara',           'zara',           'Spagna',   'fast_fashion'),
+  (gen_random_uuid(), 'H&M',            'h-and-m',        'Svezia',   'fast_fashion'),
+  (gen_random_uuid(), 'Uniqlo',         'uniqlo',         'Giappone', 'fast_fashion'),
   (gen_random_uuid(), 'Shein',          'shein',          'Cina',     'ultra_fast'),
-  (gen_random_uuid(), 'Bershka',        'bershka',        'Spagna',   'fast'),
-  (gen_random_uuid(), 'Pull&Bear',      'pull-and-bear',  'Spagna',   'fast'),
-  (gen_random_uuid(), 'Stradivarius',   'stradivarius',   'Spagna',   'fast'),
+  (gen_random_uuid(), 'Bershka',        'bershka',        'Spagna',   'fast_fashion'),
+  (gen_random_uuid(), 'Pull&Bear',      'pull-and-bear',  'Spagna',   'fast_fashion'),
+  (gen_random_uuid(), 'Stradivarius',   'stradivarius',   'Spagna',   'fast_fashion'),
   (gen_random_uuid(), 'Primark',        'primark',        'Irlanda',  'ultra_fast'),
-  (gen_random_uuid(), 'ASOS',           'asos',           'UK',       'fast'),
-  (gen_random_uuid(), 'Mango',          'mango',          'Spagna',   'fast'),
-  (gen_random_uuid(), 'COS',            'cos',            'Svezia',   'premium_fast'),
-  (gen_random_uuid(), 'Massimo Dutti',  'massimo-dutti',  'Spagna',   'premium_fast')
+  (gen_random_uuid(), 'ASOS',           'asos',           'UK',       'fast_fashion'),
+  (gen_random_uuid(), 'Mango',          'mango',          'Spagna',   'fast_fashion'),
+  (gen_random_uuid(), 'COS',            'cos',            'Svezia',   'premium'),
+  (gen_random_uuid(), 'Massimo Dutti',  'massimo-dutti',  'Spagna',   'premium')
 ON CONFLICT (slug) DO NOTHING;
 
 -- ============================================================
