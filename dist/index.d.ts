@@ -3,6 +3,7 @@ type Verdict = "steal" | "worthy" | "fair" | "meh" | "not_worthy";
 type TrustLevel = "new" | "contributor" | "trusted" | "banned";
 type UserRole = "user" | "moderator" | "admin";
 type MarketSegment = "ultra_fast" | "fast_fashion" | "premium" | "maison";
+type ComparisonTier = "mass_market" | "premium" | "luxury" | "maison";
 type ScanType = "barcode" | "label" | "manual" | "search";
 type ReportReason = "wrong_composition" | "wrong_price" | "wrong_brand" | "duplicate" | "other";
 type ReportStatus = "pending" | "confirmed" | "rejected";
@@ -318,6 +319,9 @@ interface WorthyScoreV2Input {
     category: {
         avgCompositionScore: number;
         avgPrice: number;
+        medianQualityIndex?: number;
+        medianPrice?: number;
+        medianManufacturing?: number | null;
     };
     manufacturing?: {
         productionCountry?: string | null;
@@ -394,7 +398,7 @@ declare function elastaneScore(percentage: number): number | null;
 
 declare function calculateCompositionScore(composition: Composition[]): number;
 
-declare function calculateQPR(compScore: number, price: number, refScore: number, refPrice: number): number;
+declare function calculateQPR(compScore: number, price: number, refQuality: number, refPrice: number, manufScore?: number | null, refManufScore?: number | null): number;
 
 interface WorthyScoreInput {
     compositionScore: number;
@@ -408,7 +412,7 @@ declare function calculateWorthyScoreV2(input: WorthyScoreV2Input): WorthyScoreV
 
 declare function compositionLens(composition: Composition[]): number;
 
-declare function qprLens(compositionScore: number, price: number, refCompositionScore: number, refPrice: number): number;
+declare function qprLens(compositionScore: number, price: number, refQuality: number, refPrice: number, manufacturingScore?: number | null, refManufacturing?: number | null): number;
 
 interface ManufacturingInput {
     productionCountry?: string | null;
@@ -597,21 +601,9 @@ declare const CATEGORIES: readonly [{
     readonly name: "Giacche";
     readonly icon: "🧥";
 }, {
-    readonly slug: "sneakers";
-    readonly name: "Sneakers";
-    readonly icon: "👟";
-}, {
     readonly slug: "camicie";
     readonly name: "Camicie";
     readonly icon: "👔";
-}, {
-    readonly slug: "intimo";
-    readonly name: "Intimo";
-    readonly icon: "𞩲";
-}, {
-    readonly slug: "accessori";
-    readonly name: "Accessori";
-    readonly icon: "🧣";
 }, {
     readonly slug: "t-shirt-basic";
     readonly name: "T-shirt basic";
@@ -628,10 +620,6 @@ declare const CATEGORIES: readonly [{
     readonly slug: "canotta";
     readonly name: "Canotte";
     readonly icon: "🩱";
-}, {
-    readonly slug: "top-sportivo";
-    readonly name: "Top sportivi";
-    readonly icon: "💪";
 }, {
     readonly slug: "camicia";
     readonly name: "Camicie";
@@ -708,42 +696,6 @@ declare const CATEGORIES: readonly [{
     readonly slug: "shorts-sportivi";
     readonly name: "Shorts sportivi";
     readonly icon: "🩳";
-}, {
-    readonly slug: "calzini";
-    readonly name: "Calzini";
-    readonly icon: "🧦";
-}, {
-    readonly slug: "scarpe-eleganti";
-    readonly name: "Scarpe eleganti";
-    readonly icon: "👞";
-}, {
-    readonly slug: "cappelli";
-    readonly name: "Cappelli";
-    readonly icon: "🧢";
-}, {
-    readonly slug: "sciarpe";
-    readonly name: "Sciarpe";
-    readonly icon: "🧣";
-}, {
-    readonly slug: "cinture";
-    readonly name: "Cinture";
-    readonly icon: "👔";
-}, {
-    readonly slug: "borse";
-    readonly name: "Borse";
-    readonly icon: "👜";
-}, {
-    readonly slug: "costume";
-    readonly name: "Costumi";
-    readonly icon: "🩱";
-}, {
-    readonly slug: "leggings";
-    readonly name: "Leggings";
-    readonly icon: "🦵";
-}, {
-    readonly slug: "tuta";
-    readonly name: "Tute sportive";
-    readonly icon: "🏃";
 }];
 type CategorySlug = (typeof CATEGORIES)[number]["slug"];
 
@@ -752,61 +704,91 @@ declare const LAUNCH_BRANDS: readonly [{
     readonly slug: "zara";
     readonly originCountry: "Spagna";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "H&M";
     readonly slug: "h-and-m";
     readonly originCountry: "Svezia";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "Uniqlo";
     readonly slug: "uniqlo";
     readonly originCountry: "Giappone";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "Shein";
     readonly slug: "shein";
     readonly originCountry: "Cina";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "Bershka";
     readonly slug: "bershka";
     readonly originCountry: "Spagna";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "Pull&Bear";
     readonly slug: "pull-and-bear";
     readonly originCountry: "Spagna";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "Stradivarius";
     readonly slug: "stradivarius";
     readonly originCountry: "Spagna";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "Primark";
     readonly slug: "primark";
     readonly originCountry: "Irlanda";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "ASOS";
     readonly slug: "asos";
     readonly originCountry: "UK";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "Mango";
     readonly slug: "mango";
     readonly originCountry: "Spagna";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "COS";
     readonly slug: "cos";
     readonly originCountry: "Svezia";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }, {
     readonly name: "Massimo Dutti";
     readonly slug: "massimo-dutti";
     readonly originCountry: "Spagna";
     readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
+}, {
+    readonly name: "Suitsupply";
+    readonly slug: "suitsupply";
+    readonly originCountry: "Paesi Bassi";
+    readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
+}, {
+    readonly name: "Lacoste";
+    readonly slug: "lacoste";
+    readonly originCountry: "Francia";
+    readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
+}, {
+    readonly name: "Ralph Lauren";
+    readonly slug: "ralph-lauren";
+    readonly originCountry: "USA";
+    readonly marketSegment: MarketSegment;
+    readonly comparisonTier: ComparisonTier;
 }];
 
 declare const VERDICTS: {
@@ -889,6 +871,27 @@ declare const MARKET_SEGMENTS: readonly [{
     readonly id: MarketSegment;
     readonly label: "Maison";
 }];
+declare const SEGMENT_ORDER: Record<MarketSegment, number>;
+declare function segmentDistance(a: MarketSegment | null | undefined, b: MarketSegment | null | undefined): number | null;
+declare function isSegmentAdjacent(a: MarketSegment | null | undefined, b: MarketSegment | null | undefined, maxDistance?: number): boolean;
+
+declare const COMPARISON_TIERS: readonly [{
+    readonly id: ComparisonTier;
+    readonly label: "Mass-market";
+}, {
+    readonly id: ComparisonTier;
+    readonly label: "Premium / Contemporary";
+}, {
+    readonly id: ComparisonTier;
+    readonly label: "Luxury";
+}, {
+    readonly id: ComparisonTier;
+    readonly label: "Maison";
+}];
+declare const COMPARISON_TIER_ORDER: Record<ComparisonTier, number>;
+declare function tierDistance(a: ComparisonTier | null | undefined, b: ComparisonTier | null | undefined): number | null;
+declare function isTierAdjacent(a: ComparisonTier | null | undefined, b: ComparisonTier | null | undefined, maxDistance?: number): boolean;
+declare function tierProximity(a: ComparisonTier | null | undefined, b: ComparisonTier | null | undefined): number;
 
 declare const NAV_TABS: readonly ["search", "top-rated", "scan", "coach", "saved"];
 type NavTab = (typeof NAV_TABS)[number];
@@ -923,7 +926,9 @@ type CertificationId = keyof typeof CERTIFICATIONS;
 declare function getCertification(id: string | null | undefined): Certification | undefined;
 declare function bonusFor(id: string | null | undefined): number;
 
-declare function validateProduct(data: Partial<ProductInsert>): {
+declare function validateProduct(data: Partial<ProductInsert>, opts?: {
+    supportedCategoryIds?: ReadonlySet<string>;
+}): {
     valid: boolean;
     errors: string[];
 };
@@ -956,4 +961,66 @@ declare function validatePhotoUrls(urls: readonly (string | null)[] | null | und
     error?: string;
 };
 
-export { type AuditAction, type AuditLogEntry, BADGES, type Badge, type BadgeId, type Brand, type BrandWithStats, CATEGORIES, CERTIFICATIONS, COUNTRIES, type Category, type CategorySlug, type Certification, type CertificationId, type CertificationScope, type Composition, type Country, type CountryIso2, DEFAULT_FIBER_SCORE, type DailyWorthy, type DuplicateStatus, ELASTANE_FIBERS, ELASTANE_IGNORE_THRESHOLD, ELASTANE_LOW_THRESHOLD, ELASTANE_SCORE_HIGH, ELASTANE_SCORE_LOW, FIBERS, FIBER_DESCRIPTIONS, FIBER_SCORES, type FiberId, type FiberTier, type Gender, LAUNCH_BRANDS, type LensResult, MARKET_SEGMENTS, type ManufacturingInput, type MarketSegment, type MatchProductByTagInput, type MatchProductByTagOutput, type MattiaReview, NAV_TABS, type NavTab, ONBOARDING_STEPS, type OnboardingStep, POINTS, type PhotoSearchCandidate, type PhotoSearchDetected, type PriceHistory, type PriceSource, type Product, type ProductDuplicate, type ProductInsert, type ProductReport, type ProductUpdate, type ProductVote, type ProductWithRelations, RATE_LIMITS, type ReportReason, type ReportStatus, type ReviewInsert, type SavedComparison, type SavedProduct, type ScanHistoryEntry, type ScanType, type ScoreBreakdown, type ScoreBreakdownV2, type TrustLevel, type User, type UserBadge, type UserBrandPreference, type UserCategoryPreference, type UserConsent, type UserProfile, type UserPublicProfile, type UserRole, VALIDATION, VERDICTS, type Verdict, type VerificationStatus, type VoteInsert, type WorthyScoreInput, type WorthyScoreLensName, type WorthyScoreResult, type WorthyScoreV2Input, type WorthyScoreV2Result, bonusFor, calculateCompositionScore, calculateQPR, calculateWorthyScore, calculateWorthyScoreV2, compositionLens, elastaneScore, getCertification, getCountry, getElastaneDescription, getFiberDescription, isElastane, isSafeHttpsUrl, isValidBarcode, isValidEAN13, isValidUPC, manufacturingLens, manufacturingScoreFor, qprLens, validateAffiliateUrl, validateComposition, validatePhotoUrls, validatePrice, validateProduct, verdictFromScore };
+interface AlternativeProduct {
+    id: string;
+    worthy_score: number;
+    price: number | null;
+    gender: Gender | string | null;
+    composition: Composition[] | null;
+    market_segment: MarketSegment | null;
+    /** Lega di confronto del brand (asse del QPR). Preferita a market_segment per
+     *  l'adiacenza/prossimità di posizionamento; fallback a market_segment se assente. */
+    comparison_tier?: ComparisonTier | string | null;
+    brand_id: string | null;
+    category_id: string | null;
+    /** Famiglia di categoria (Ondata 3). Fallback a category_id se assente. */
+    category_family?: string | null;
+}
+interface AlternativeCandidate extends AlternativeProduct {
+    /** Overlap dei token col nome del riferimento (0..1), precalcolato dal chiamante.
+     *  La similarità testuale resta in worthy-app (lib/nameSimilarity); qui è solo un
+     *  segnale di tie-break per non duplicare la tokenizzazione nel pacchetto shared. */
+    nameOverlap?: number;
+}
+interface RankedAlternative {
+    /** Punteggio di ranking [0..1] usato per l'ordinamento. */
+    rank: number;
+    /** Differenza di Worthy Score rispetto al riferimento (>= 0 per costruzione). */
+    scoreDelta: number;
+}
+/** Sopra questo score un capo è "già buono" (verdict worthy/steal): nel tab non genera alternative. */
+declare const SOURCE_GOOD_FLOOR = 71;
+/** Floor assoluto di qualità: un'alternativa non scende mai sotto verdict 'fair' (51). */
+declare const MIN_VERDICT_FLOOR = 51;
+/** Bonus minimo stesso-brand nel ranking — mai un override. */
+declare const SAME_BRAND_BONUS = 0.05;
+/** Cap superiore di fascia prezzo. Nessun cap inferiore: più economico E migliore è desiderato. */
+declare const PRICE_RATIO_MAX = 2.5;
+/** Gender compatibile col riferimento: null/unisex su un lato ⇒ ammesso. */
+declare function gendersCompatible(a: Gender | string | null | undefined, b: Gender | string | null | undefined): boolean;
+/** Vicinanza di prezzo [0..1]. Dato mancante ⇒ neutro (0.5), non penalizzante. */
+declare function priceProximity(current: number | null | undefined, alt: number | null | undefined): number;
+/** Similarità di composizione [0..1] basata sulle fibre dominanti. */
+declare function fiberSimilarity(a: Composition[] | null | undefined, b: Composition[] | null | undefined): number;
+/** Prossimità di segmento [0..1]. Segmento ignoto ⇒ neutro (0.5). */
+declare function segmentProximity(a: MarketSegment | null | undefined, b: MarketSegment | null | undefined): number;
+/** Un capo è "già buono" (non merita alternative) se verdict worthy o steal. */
+declare function isAlreadyGood(score: number): boolean;
+/** Un'alternativa rispetta il floor di qualità se verdict almeno 'fair'. */
+declare function meetsQualityFloor(score: number): boolean;
+declare function isEligibleAlternative(ref: AlternativeProduct, cand: AlternativeProduct): boolean;
+declare function rankAlternative(ref: AlternativeProduct, cand: AlternativeCandidate): number;
+/** Ordina i candidati GIÀ ammissibili e ritorna i migliori `limit` con rank e
+ *  scoreDelta. Da usare quando l'ammissibilità è già garantita a monte (es. dalla
+ *  RPC get_better_alternatives): non riapplica gli hard-filter, solo il ranking. */
+declare function rankBestCandidates<T extends AlternativeCandidate>(ref: AlternativeProduct, candidates: readonly T[], opts?: {
+    limit?: number;
+}): (T & RankedAlternative)[];
+/** Filtra gli ammissibili, ordina e ritorna i migliori `limit` con rank e scoreDelta. */
+declare function pickBestAlternatives<T extends AlternativeCandidate>(ref: AlternativeProduct, candidates: readonly T[], opts?: {
+    limit?: number;
+}): (T & RankedAlternative)[];
+/** Migliore alternativa singola, o null se non esiste un candidato ammissibile. */
+declare function bestAlternative<T extends AlternativeCandidate>(ref: AlternativeProduct, candidates: readonly T[]): (T & RankedAlternative) | null;
+
+export { type AlternativeCandidate, type AlternativeProduct, type AuditAction, type AuditLogEntry, BADGES, type Badge, type BadgeId, type Brand, type BrandWithStats, CATEGORIES, CERTIFICATIONS, COMPARISON_TIERS, COMPARISON_TIER_ORDER, COUNTRIES, type Category, type CategorySlug, type Certification, type CertificationId, type CertificationScope, type ComparisonTier, type Composition, type Country, type CountryIso2, DEFAULT_FIBER_SCORE, type DailyWorthy, type DuplicateStatus, ELASTANE_FIBERS, ELASTANE_IGNORE_THRESHOLD, ELASTANE_LOW_THRESHOLD, ELASTANE_SCORE_HIGH, ELASTANE_SCORE_LOW, FIBERS, FIBER_DESCRIPTIONS, FIBER_SCORES, type FiberId, type FiberTier, type Gender, LAUNCH_BRANDS, type LensResult, MARKET_SEGMENTS, MIN_VERDICT_FLOOR, type ManufacturingInput, type MarketSegment, type MatchProductByTagInput, type MatchProductByTagOutput, type MattiaReview, NAV_TABS, type NavTab, ONBOARDING_STEPS, type OnboardingStep, POINTS, PRICE_RATIO_MAX, type PhotoSearchCandidate, type PhotoSearchDetected, type PriceHistory, type PriceSource, type Product, type ProductDuplicate, type ProductInsert, type ProductReport, type ProductUpdate, type ProductVote, type ProductWithRelations, RATE_LIMITS, type RankedAlternative, type ReportReason, type ReportStatus, type ReviewInsert, SAME_BRAND_BONUS, SEGMENT_ORDER, SOURCE_GOOD_FLOOR, type SavedComparison, type SavedProduct, type ScanHistoryEntry, type ScanType, type ScoreBreakdown, type ScoreBreakdownV2, type TrustLevel, type User, type UserBadge, type UserBrandPreference, type UserCategoryPreference, type UserConsent, type UserProfile, type UserPublicProfile, type UserRole, VALIDATION, VERDICTS, type Verdict, type VerificationStatus, type VoteInsert, type WorthyScoreInput, type WorthyScoreLensName, type WorthyScoreResult, type WorthyScoreV2Input, type WorthyScoreV2Result, bestAlternative, bonusFor, calculateCompositionScore, calculateQPR, calculateWorthyScore, calculateWorthyScoreV2, compositionLens, elastaneScore, fiberSimilarity, gendersCompatible, getCertification, getCountry, getElastaneDescription, getFiberDescription, isAlreadyGood, isElastane, isEligibleAlternative, isSafeHttpsUrl, isSegmentAdjacent, isTierAdjacent, isValidBarcode, isValidEAN13, isValidUPC, manufacturingLens, manufacturingScoreFor, meetsQualityFloor, pickBestAlternatives, priceProximity, qprLens, rankAlternative, rankBestCandidates, segmentDistance, segmentProximity, tierDistance, tierProximity, validateAffiliateUrl, validateComposition, validatePhotoUrls, validatePrice, validateProduct, verdictFromScore };

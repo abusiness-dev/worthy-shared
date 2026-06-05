@@ -132,6 +132,7 @@ export type Database = {
       brands: {
         Row: {
           avg_worthy_score: number
+          comparison_tier: string
           created_at: string
           description: string | null
           id: string
@@ -145,6 +146,7 @@ export type Database = {
         }
         Insert: {
           avg_worthy_score?: number
+          comparison_tier?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -158,6 +160,7 @@ export type Database = {
         }
         Update: {
           avg_worthy_score?: number
+          comparison_tier?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -169,14 +172,24 @@ export type Database = {
           slug?: string
           total_scans?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "brands_comparison_tier_fkey"
+            columns: ["comparison_tier"]
+            isOneToOne: false
+            referencedRelation: "comparison_tiers"
+            referencedColumns: ["key"]
+          },
+        ]
       }
       categories: {
         Row: {
           avg_composition_score: number
           avg_price: number
+          family: string | null
           icon: string
           id: string
+          is_supported: boolean
           median_composition_score: number
           median_manufacturing_score: number | null
           median_price: number
@@ -188,8 +201,10 @@ export type Database = {
         Insert: {
           avg_composition_score?: number
           avg_price?: number
+          family?: string | null
           icon: string
           id?: string
+          is_supported?: boolean
           median_composition_score?: number
           median_manufacturing_score?: number | null
           median_price?: number
@@ -201,8 +216,10 @@ export type Database = {
         Update: {
           avg_composition_score?: number
           avg_price?: number
+          family?: string | null
           icon?: string
           id?: string
+          is_supported?: boolean
           median_composition_score?: number
           median_manufacturing_score?: number | null
           median_price?: number
@@ -254,6 +271,54 @@ export type Database = {
           },
         ]
       }
+      category_tier_aggregates: {
+        Row: {
+          category_id: string
+          comparison_tier: string
+          median_composition_score: number
+          median_manufacturing_score: number | null
+          median_price: number
+          median_quality_index: number
+          product_count: number
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          comparison_tier: string
+          median_composition_score: number
+          median_manufacturing_score?: number | null
+          median_price: number
+          median_quality_index: number
+          product_count: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          comparison_tier?: string
+          median_composition_score?: number
+          median_manufacturing_score?: number | null
+          median_price?: number
+          median_quality_index?: number
+          product_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_tier_aggregates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_tier_aggregates_comparison_tier_fkey"
+            columns: ["comparison_tier"]
+            isOneToOne: false
+            referencedRelation: "comparison_tiers"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       certifications: {
         Row: {
           bonus_points: number
@@ -275,6 +340,27 @@ export type Database = {
           id?: string
           notes?: string | null
           scope?: string
+        }
+        Relationships: []
+      }
+      comparison_tiers: {
+        Row: {
+          key: string
+          label: string
+          price_hint: string | null
+          sort_order: number
+        }
+        Insert: {
+          key: string
+          label: string
+          price_hint?: string | null
+          sort_order: number
+        }
+        Update: {
+          key?: string
+          label?: string
+          price_hint?: string | null
+          sort_order?: number
         }
         Relationships: []
       }
@@ -1442,6 +1528,30 @@ export type Database = {
           name_similarity: number
         }[]
       }
+      get_better_alternatives: {
+        Args: { p_limit_per?: number; p_ref_ids: string[] }
+        Returns: {
+          brand_id: string
+          brand_name: string
+          brand_slug: string
+          category_family: string
+          category_id: string
+          category_name: string
+          category_slug: string
+          comparison_tier: string
+          composition: Json
+          gender: Database["public"]["Enums"]["gender"]
+          id: string
+          market_segment: Database["public"]["Enums"]["market_segment"]
+          name: string
+          photo_urls: string[]
+          price: number
+          ref_id: string
+          slug: string
+          verdict: Database["public"]["Enums"]["verdict"]
+          worthy_score: number
+        }[]
+      }
       get_brand_ids_by_gender: {
         Args: never
         Returns: {
@@ -1505,6 +1615,10 @@ export type Database = {
           p_category_id: string
           p_segment: Database["public"]["Enums"]["market_segment"]
         }
+        Returns: undefined
+      }
+      recalculate_category_tier_aggregates: {
+        Args: { p_category_id: string; p_tier: string }
         Returns: undefined
       }
       search_products_fuzzy: {

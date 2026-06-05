@@ -5,7 +5,10 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const HTML_TAG_RE = /<[^>]+>/;
 const URL_RE = /https?:\/\/\S+/i;
 
-export function validateProduct(data: Partial<ProductInsert>): { valid: boolean; errors: string[] } {
+export function validateProduct(
+  data: Partial<ProductInsert>,
+  opts: { supportedCategoryIds?: ReadonlySet<string> } = {},
+): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   if (!data.name || data.name.trim().length === 0) {
@@ -28,6 +31,8 @@ export function validateProduct(data: Partial<ProductInsert>): { valid: boolean;
     errors.push("La categoria è obbligatoria");
   } else if (!UUID_RE.test(data.category_id)) {
     errors.push("Il category_id non è un UUID valido");
+  } else if (opts.supportedCategoryIds && !opts.supportedCategoryIds.has(data.category_id)) {
+    errors.push("La categoria non è supportata dal Worthy Score");
   }
 
   if (data.price == null) {

@@ -23,6 +23,8 @@ __export(index_exports, {
   BADGES: () => BADGES,
   CATEGORIES: () => CATEGORIES,
   CERTIFICATIONS: () => CERTIFICATIONS,
+  COMPARISON_TIERS: () => COMPARISON_TIERS,
+  COMPARISON_TIER_ORDER: () => COMPARISON_TIER_ORDER,
   COUNTRIES: () => COUNTRIES,
   DEFAULT_FIBER_SCORE: () => DEFAULT_FIBER_SCORE,
   ELASTANE_FIBERS: () => ELASTANE_FIBERS,
@@ -35,12 +37,18 @@ __export(index_exports, {
   FIBER_SCORES: () => FIBER_SCORES,
   LAUNCH_BRANDS: () => LAUNCH_BRANDS,
   MARKET_SEGMENTS: () => MARKET_SEGMENTS,
+  MIN_VERDICT_FLOOR: () => MIN_VERDICT_FLOOR,
   NAV_TABS: () => NAV_TABS,
   ONBOARDING_STEPS: () => ONBOARDING_STEPS,
   POINTS: () => POINTS,
+  PRICE_RATIO_MAX: () => PRICE_RATIO_MAX,
   RATE_LIMITS: () => RATE_LIMITS,
+  SAME_BRAND_BONUS: () => SAME_BRAND_BONUS,
+  SEGMENT_ORDER: () => SEGMENT_ORDER,
+  SOURCE_GOOD_FLOOR: () => SOURCE_GOOD_FLOOR,
   VALIDATION: () => VALIDATION,
   VERDICTS: () => VERDICTS,
+  bestAlternative: () => bestAlternative,
   bonusFor: () => bonusFor,
   calculateCompositionScore: () => calculateCompositionScore,
   calculateQPR: () => calculateQPR,
@@ -48,18 +56,33 @@ __export(index_exports, {
   calculateWorthyScoreV2: () => calculateWorthyScoreV2,
   compositionLens: () => compositionLens,
   elastaneScore: () => elastaneScore,
+  fiberSimilarity: () => fiberSimilarity,
+  gendersCompatible: () => gendersCompatible,
   getCertification: () => getCertification,
   getCountry: () => getCountry,
   getElastaneDescription: () => getElastaneDescription,
   getFiberDescription: () => getFiberDescription,
+  isAlreadyGood: () => isAlreadyGood,
   isElastane: () => isElastane,
+  isEligibleAlternative: () => isEligibleAlternative,
   isSafeHttpsUrl: () => isSafeHttpsUrl,
+  isSegmentAdjacent: () => isSegmentAdjacent,
+  isTierAdjacent: () => isTierAdjacent,
   isValidBarcode: () => isValidBarcode,
   isValidEAN13: () => isValidEAN13,
   isValidUPC: () => isValidUPC,
   manufacturingLens: () => manufacturingLens,
   manufacturingScoreFor: () => manufacturingScoreFor,
+  meetsQualityFloor: () => meetsQualityFloor,
+  pickBestAlternatives: () => pickBestAlternatives,
+  priceProximity: () => priceProximity,
   qprLens: () => qprLens,
+  rankAlternative: () => rankAlternative,
+  rankBestCandidates: () => rankBestCandidates,
+  segmentDistance: () => segmentDistance,
+  segmentProximity: () => segmentProximity,
+  tierDistance: () => tierDistance,
+  tierProximity: () => tierProximity,
   validateAffiliateUrl: () => validateAffiliateUrl,
   validateComposition: () => validateComposition,
   validatePhotoUrls: () => validatePhotoUrls,
@@ -154,13 +177,23 @@ function calculateCompositionScore(composition) {
 }
 
 // src/scoring/calculateQPR.ts
-function sigmoid(x) {
-  return 100 / (1 + Math.exp(-0.05 * (x - 100)));
+function computeQualityIndex(compScore, manufScore) {
+  if (manufScore == null) return compScore;
+  return (compScore * 0.5 + manufScore * 0.25) / 0.75;
 }
-function calculateQPR(compScore, price, refScore, refPrice) {
-  if (price <= 0 || refPrice <= 0 || refScore <= 0) return 50;
-  const raw = compScore / price / (refScore / refPrice) * 100;
-  return Math.round(Math.min(100, Math.max(0, sigmoid(raw))));
+function sigmoid(x) {
+  return 100 / (1 + Math.exp(-0.025 * (x - 100)));
+}
+function calculateQPR(compScore, price, refQuality, refPrice, manufScore, refManufScore) {
+  if (price <= 0 || refPrice <= 0 || refQuality <= 0) return 50;
+  const qualityIdx = computeQualityIndex(compScore, manufScore);
+  const raw = qualityIdx / price / (refQuality / refPrice) * 100;
+  const qpr = Math.round(sigmoid(raw));
+  let bonus = 0;
+  if (manufScore != null && refManufScore != null) {
+    bonus = (manufScore - refManufScore) * 0.3;
+  }
+  return Math.min(95, Math.max(15, qpr + Math.round(bonus)));
 }
 
 // src/scoring/verdictFromScore.ts
@@ -200,8 +233,15 @@ function compositionLens(composition) {
 }
 
 // src/scoring/v2/lenses/qprLens.ts
-function qprLens(compositionScore, price, refCompositionScore, refPrice) {
-  return calculateQPR(compositionScore, price, refCompositionScore, refPrice);
+function qprLens(compositionScore, price, refQuality, refPrice, manufacturingScore, refManufacturing) {
+  return calculateQPR(
+    compositionScore,
+    price,
+    refQuality,
+    refPrice,
+    manufacturingScore,
+    refManufacturing
+  );
 }
 
 // src/constants/countries.ts
@@ -315,11 +355,16 @@ function calculateWorthyScoreV2(input) {
     dyeingCountry: input.manufacturing?.dyeingCountry,
     hasMadeInItaly100
   });
+  const refQuality = input.category.medianQualityIndex ?? input.category.avgCompositionScore;
+  const refPrice = input.category.medianPrice ?? input.category.avgPrice;
+  const refManufacturing = input.category.medianManufacturing ?? null;
   const qprScore = qprLens(
     compositionScore,
     input.price,
-    input.category.avgCompositionScore,
-    input.category.avgPrice
+    refQuality,
+    refPrice,
+    manufacturingScore,
+    refManufacturing
   );
   let weightedSum = 0;
   let usedWeight = 0;
@@ -424,22 +469,18 @@ var BADGES = [
 
 // src/constants/categories.ts
 var CATEGORIES = [
-  // Categorie legacy (9 originali) — preservate per compatibilità con prodotti esistenti
+  // Categorie legacy (preservate per compatibilità con prodotti esistenti)
   { slug: "t-shirt", name: "T-Shirt", icon: "\u{1F455}" },
   { slug: "felpe", name: "Felpe", icon: "\u{1F9E5}" },
   { slug: "jeans", name: "Jeans", icon: "\u{1F456}" },
   { slug: "pantaloni", name: "Pantaloni", icon: "\u{1F456}" },
   { slug: "giacche", name: "Giacche", icon: "\u{1F9E5}" },
-  { slug: "sneakers", name: "Sneakers", icon: "\u{1F45F}" },
   { slug: "camicie", name: "Camicie", icon: "\u{1F454}" },
-  { slug: "intimo", name: "Intimo", icon: "\u{1EA72}" },
-  { slug: "accessori", name: "Accessori", icon: "\u{1F9E3}" },
   // T-shirt & Top
   { slug: "t-shirt-basic", name: "T-shirt basic", icon: "\u{1F455}" },
   { slug: "t-shirt-oversize", name: "T-shirt oversize", icon: "\u{1F455}" },
   { slug: "polo", name: "Polo", icon: "\u{1F455}" },
   { slug: "canotta", name: "Canotte", icon: "\u{1FA71}" },
-  { slug: "top-sportivo", name: "Top sportivi", icon: "\u{1F4AA}" },
   // Camicie
   { slug: "camicia", name: "Camicie", icon: "\u{1F454}" },
   // Felpe & Maglioni
@@ -464,37 +505,28 @@ var CATEGORIES = [
   { slug: "jeans-wide", name: "Jeans wide leg", icon: "\u{1F456}" },
   // Shorts
   { slug: "shorts", name: "Shorts", icon: "\u{1FA73}" },
-  { slug: "shorts-sportivi", name: "Shorts sportivi", icon: "\u{1FA73}" },
-  // Intimo & calze (intimo slug già presente nelle legacy)
-  { slug: "calzini", name: "Calzini", icon: "\u{1F9E6}" },
-  // Scarpe (sneakers slug già presente nelle legacy)
-  { slug: "scarpe-eleganti", name: "Scarpe eleganti", icon: "\u{1F45E}" },
-  // Accessori
-  { slug: "cappelli", name: "Cappelli", icon: "\u{1F9E2}" },
-  { slug: "sciarpe", name: "Sciarpe", icon: "\u{1F9E3}" },
-  { slug: "cinture", name: "Cinture", icon: "\u{1F454}" },
-  { slug: "borse", name: "Borse", icon: "\u{1F45C}" },
-  // Costumi
-  { slug: "costume", name: "Costumi", icon: "\u{1FA71}" },
-  // Activewear
-  { slug: "leggings", name: "Leggings", icon: "\u{1F9B5}" },
-  { slug: "tuta", name: "Tute sportive", icon: "\u{1F3C3}" }
+  { slug: "shorts-sportivi", name: "Shorts sportivi", icon: "\u{1FA73}" }
 ];
 
 // src/constants/brands.ts
 var LAUNCH_BRANDS = [
-  { name: "Zara", slug: "zara", originCountry: "Spagna", marketSegment: "fast" },
-  { name: "H&M", slug: "h-and-m", originCountry: "Svezia", marketSegment: "fast" },
-  { name: "Uniqlo", slug: "uniqlo", originCountry: "Giappone", marketSegment: "fast" },
-  { name: "Shein", slug: "shein", originCountry: "Cina", marketSegment: "ultra_fast" },
-  { name: "Bershka", slug: "bershka", originCountry: "Spagna", marketSegment: "fast" },
-  { name: "Pull&Bear", slug: "pull-and-bear", originCountry: "Spagna", marketSegment: "fast" },
-  { name: "Stradivarius", slug: "stradivarius", originCountry: "Spagna", marketSegment: "fast" },
-  { name: "Primark", slug: "primark", originCountry: "Irlanda", marketSegment: "ultra_fast" },
-  { name: "ASOS", slug: "asos", originCountry: "UK", marketSegment: "fast" },
-  { name: "Mango", slug: "mango", originCountry: "Spagna", marketSegment: "fast" },
-  { name: "COS", slug: "cos", originCountry: "Svezia", marketSegment: "premium_fast" },
-  { name: "Massimo Dutti", slug: "massimo-dutti", originCountry: "Spagna", marketSegment: "premium_fast" }
+  // Mass-market (fast / ultra fast fashion)
+  { name: "Zara", slug: "zara", originCountry: "Spagna", marketSegment: "fast_fashion", comparisonTier: "mass_market" },
+  { name: "H&M", slug: "h-and-m", originCountry: "Svezia", marketSegment: "fast_fashion", comparisonTier: "mass_market" },
+  { name: "Uniqlo", slug: "uniqlo", originCountry: "Giappone", marketSegment: "fast_fashion", comparisonTier: "mass_market" },
+  { name: "Shein", slug: "shein", originCountry: "Cina", marketSegment: "ultra_fast", comparisonTier: "mass_market" },
+  { name: "Bershka", slug: "bershka", originCountry: "Spagna", marketSegment: "fast_fashion", comparisonTier: "mass_market" },
+  { name: "Pull&Bear", slug: "pull-and-bear", originCountry: "Spagna", marketSegment: "fast_fashion", comparisonTier: "mass_market" },
+  { name: "Stradivarius", slug: "stradivarius", originCountry: "Spagna", marketSegment: "fast_fashion", comparisonTier: "mass_market" },
+  { name: "Primark", slug: "primark", originCountry: "Irlanda", marketSegment: "ultra_fast", comparisonTier: "mass_market" },
+  { name: "ASOS", slug: "asos", originCountry: "UK", marketSegment: "fast_fashion", comparisonTier: "mass_market" },
+  { name: "Mango", slug: "mango", originCountry: "Spagna", marketSegment: "fast_fashion", comparisonTier: "mass_market" },
+  // Premium / Contemporary
+  { name: "COS", slug: "cos", originCountry: "Svezia", marketSegment: "premium", comparisonTier: "premium" },
+  { name: "Massimo Dutti", slug: "massimo-dutti", originCountry: "Spagna", marketSegment: "premium", comparisonTier: "premium" },
+  { name: "Suitsupply", slug: "suitsupply", originCountry: "Paesi Bassi", marketSegment: "premium", comparisonTier: "premium" },
+  { name: "Lacoste", slug: "lacoste", originCountry: "Francia", marketSegment: "premium", comparisonTier: "premium" },
+  { name: "Ralph Lauren", slug: "ralph-lauren", originCountry: "USA", marketSegment: "premium", comparisonTier: "premium" }
 ];
 
 // src/constants/verdicts.ts
@@ -573,6 +605,49 @@ var MARKET_SEGMENTS = [
   { id: "premium", label: "Premium" },
   { id: "maison", label: "Maison" }
 ];
+var SEGMENT_ORDER = {
+  ultra_fast: 0,
+  fast_fashion: 1,
+  premium: 2,
+  maison: 3
+};
+function segmentDistance(a, b) {
+  if (!a || !b) return null;
+  return Math.abs(SEGMENT_ORDER[a] - SEGMENT_ORDER[b]);
+}
+function isSegmentAdjacent(a, b, maxDistance = 1) {
+  const d = segmentDistance(a, b);
+  if (d === null) return true;
+  return d <= maxDistance;
+}
+
+// src/constants/comparisonTiers.ts
+var COMPARISON_TIERS = [
+  { id: "mass_market", label: "Mass-market" },
+  { id: "premium", label: "Premium / Contemporary" },
+  { id: "luxury", label: "Luxury" },
+  { id: "maison", label: "Maison" }
+];
+var COMPARISON_TIER_ORDER = {
+  mass_market: 0,
+  premium: 1,
+  luxury: 2,
+  maison: 3
+};
+function tierDistance(a, b) {
+  if (!a || !b) return null;
+  return Math.abs(COMPARISON_TIER_ORDER[a] - COMPARISON_TIER_ORDER[b]);
+}
+function isTierAdjacent(a, b, maxDistance = 1) {
+  const d = tierDistance(a, b);
+  if (d === null) return true;
+  return d <= maxDistance;
+}
+function tierProximity(a, b) {
+  const d = tierDistance(a, b);
+  if (d === null) return 0.5;
+  return 1 - d / 3;
+}
 
 // src/constants/navigation.ts
 var NAV_TABS = ["search", "top-rated", "scan", "coach", "saved"];
@@ -716,7 +791,7 @@ function validatePhotoUrls(urls) {
 var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 var HTML_TAG_RE = /<[^>]+>/;
 var URL_RE = /https?:\/\/\S+/i;
-function validateProduct(data) {
+function validateProduct(data, opts = {}) {
   const errors = [];
   if (!data.name || data.name.trim().length === 0) {
     errors.push("Il nome del prodotto \xE8 obbligatorio");
@@ -736,6 +811,8 @@ function validateProduct(data) {
     errors.push("La categoria \xE8 obbligatoria");
   } else if (!UUID_RE.test(data.category_id)) {
     errors.push("Il category_id non \xE8 un UUID valido");
+  } else if (opts.supportedCategoryIds && !opts.supportedCategoryIds.has(data.category_id)) {
+    errors.push("La categoria non \xE8 supportata dal Worthy Score");
   }
   if (data.price == null) {
     errors.push("Il prezzo \xE8 obbligatorio");
@@ -841,11 +918,136 @@ function isValidUPC(code) {
 function isValidBarcode(code) {
   return isValidEAN13(code) || isValidUPC(code);
 }
+
+// src/alternatives/index.ts
+var SOURCE_GOOD_FLOOR = 71;
+var MIN_VERDICT_FLOOR = 51;
+var SAME_BRAND_BONUS = 0.05;
+var PRICE_RATIO_MAX = 2.5;
+function gendersCompatible(a, b) {
+  if (!a || !b) return true;
+  const ga = a.toLowerCase();
+  const gb = b.toLowerCase();
+  if (ga === "unisex" || gb === "unisex") return true;
+  return ga === gb;
+}
+function priceProximity(current, alt) {
+  const c = current ?? 0;
+  const a = alt ?? 0;
+  if (c <= 0 || a <= 0) return 0.5;
+  const diff = Math.abs(c - a) / c;
+  return Math.max(0, 1 - Math.min(diff, 1));
+}
+function dominantFibers(composition) {
+  if (!composition || composition.length === 0) return [];
+  return [...composition].sort((x, y) => y.percentage - x.percentage).slice(0, 2).map((c) => c.fiber.toLowerCase().trim());
+}
+function fiberSimilarity(a, b) {
+  const da = dominantFibers(a);
+  const db = dominantFibers(b);
+  const da0 = da[0];
+  const db0 = db[0];
+  if (da0 === void 0 || db0 === void 0) return 0;
+  if (da0 === db0) return 1;
+  if (da.slice(0, 2).includes(db0) || db.slice(0, 2).includes(da0)) return 0.5;
+  return 0;
+}
+function segmentProximity(a, b) {
+  const d = segmentDistance(a, b);
+  if (d === null) return 0.5;
+  return 1 - d / 3;
+}
+function knownTier(t) {
+  return typeof t === "string" && t in COMPARISON_TIER_ORDER ? t : null;
+}
+function positionalAdjacent(ref, cand) {
+  const rt = knownTier(ref.comparison_tier);
+  const ct = knownTier(cand.comparison_tier);
+  if (rt && ct) return isTierAdjacent(rt, ct);
+  return isSegmentAdjacent(ref.market_segment, cand.market_segment);
+}
+function positionalProximity(ref, cand) {
+  const rt = knownTier(ref.comparison_tier);
+  const ct = knownTier(cand.comparison_tier);
+  if (rt && ct) return tierProximity(rt, ct);
+  return segmentProximity(ref.market_segment, cand.market_segment);
+}
+function isAlreadyGood(score) {
+  const v = verdictFromScore(score);
+  return v === "worthy" || v === "steal";
+}
+function meetsQualityFloor(score) {
+  const v = verdictFromScore(score);
+  return v === "fair" || v === "worthy" || v === "steal";
+}
+function familyKey(p) {
+  return p.category_family ?? p.category_id;
+}
+function isEligibleAlternative(ref, cand) {
+  if (cand.id === ref.id) return false;
+  const rf = familyKey(ref);
+  const cf = familyKey(cand);
+  if (rf == null || cf == null || rf !== cf) return false;
+  if (!gendersCompatible(ref.gender, cand.gender)) return false;
+  if (cand.worthy_score < ref.worthy_score) return false;
+  if (!meetsQualityFloor(cand.worthy_score)) return false;
+  if (!positionalAdjacent(ref, cand)) return false;
+  const rp = ref.price ?? 0;
+  const cp = cand.price ?? 0;
+  if (rp > 0 && cp > 0 && cp / rp > PRICE_RATIO_MAX) return false;
+  return true;
+}
+function rankAlternative(ref, cand) {
+  const scoreNorm = Math.max(0, Math.min(1, cand.worthy_score / 100));
+  const priceSim = priceProximity(ref.price, cand.price);
+  const fiberSim = fiberSimilarity(ref.composition, cand.composition);
+  const segSim = positionalProximity(ref, cand);
+  const nameOv = cand.nameOverlap ?? 0;
+  const sameBrand = ref.brand_id != null && cand.brand_id === ref.brand_id ? 1 : 0;
+  return 0.45 * scoreNorm + 0.2 * priceSim + 0.15 * fiberSim + 0.1 * segSim + 0.05 * nameOv + SAME_BRAND_BONUS * sameBrand;
+}
+function compareAlternatives(ref, a, b) {
+  const rb = rankAlternative(ref, b);
+  const ra = rankAlternative(ref, a);
+  if (rb !== ra) return rb - ra;
+  if (b.worthy_score !== a.worthy_score) return b.worthy_score - a.worthy_score;
+  const pb = priceProximity(ref.price, b.price);
+  const pa = priceProximity(ref.price, a.price);
+  if (pb !== pa) return pb - pa;
+  const sb = positionalProximity(ref, b);
+  const sa = positionalProximity(ref, a);
+  if (sb !== sa) return sb - sa;
+  const ea = a.category_id != null && a.category_id === ref.category_id ? 1 : 0;
+  const eb = b.category_id != null && b.category_id === ref.category_id ? 1 : 0;
+  if (eb !== ea) return eb - ea;
+  const fb = fiberSimilarity(ref.composition, b.composition);
+  const fa = fiberSimilarity(ref.composition, a.composition);
+  if (fb !== fa) return fb - fa;
+  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+}
+function rankBestCandidates(ref, candidates, opts = {}) {
+  const limit = opts.limit ?? 5;
+  const sorted = [...candidates].sort((a, b) => compareAlternatives(ref, a, b));
+  return sorted.slice(0, limit).map((c) => ({
+    ...c,
+    rank: rankAlternative(ref, c),
+    scoreDelta: Math.round(c.worthy_score - ref.worthy_score)
+  }));
+}
+function pickBestAlternatives(ref, candidates, opts = {}) {
+  const eligible = candidates.filter((c) => isEligibleAlternative(ref, c));
+  return rankBestCandidates(ref, eligible, opts);
+}
+function bestAlternative(ref, candidates) {
+  return pickBestAlternatives(ref, candidates, { limit: 1 })[0] ?? null;
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   BADGES,
   CATEGORIES,
   CERTIFICATIONS,
+  COMPARISON_TIERS,
+  COMPARISON_TIER_ORDER,
   COUNTRIES,
   DEFAULT_FIBER_SCORE,
   ELASTANE_FIBERS,
@@ -858,12 +1060,18 @@ function isValidBarcode(code) {
   FIBER_SCORES,
   LAUNCH_BRANDS,
   MARKET_SEGMENTS,
+  MIN_VERDICT_FLOOR,
   NAV_TABS,
   ONBOARDING_STEPS,
   POINTS,
+  PRICE_RATIO_MAX,
   RATE_LIMITS,
+  SAME_BRAND_BONUS,
+  SEGMENT_ORDER,
+  SOURCE_GOOD_FLOOR,
   VALIDATION,
   VERDICTS,
+  bestAlternative,
   bonusFor,
   calculateCompositionScore,
   calculateQPR,
@@ -871,18 +1079,33 @@ function isValidBarcode(code) {
   calculateWorthyScoreV2,
   compositionLens,
   elastaneScore,
+  fiberSimilarity,
+  gendersCompatible,
   getCertification,
   getCountry,
   getElastaneDescription,
   getFiberDescription,
+  isAlreadyGood,
   isElastane,
+  isEligibleAlternative,
   isSafeHttpsUrl,
+  isSegmentAdjacent,
+  isTierAdjacent,
   isValidBarcode,
   isValidEAN13,
   isValidUPC,
   manufacturingLens,
   manufacturingScoreFor,
+  meetsQualityFloor,
+  pickBestAlternatives,
+  priceProximity,
   qprLens,
+  rankAlternative,
+  rankBestCandidates,
+  segmentDistance,
+  segmentProximity,
+  tierDistance,
+  tierProximity,
   validateAffiliateUrl,
   validateComposition,
   validatePhotoUrls,

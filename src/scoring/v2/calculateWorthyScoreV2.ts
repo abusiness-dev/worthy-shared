@@ -29,11 +29,19 @@ export function calculateWorthyScoreV2(input: WorthyScoreV2Input): WorthyScoreV2
     hasMadeInItaly100,
   });
 
+  // Riferimento del QPR: preferisci la median del cluster (allineata al server);
+  // fallback alla media di categoria per retro-compatibilità.
+  const refQuality = input.category.medianQualityIndex ?? input.category.avgCompositionScore;
+  const refPrice   = input.category.medianPrice ?? input.category.avgPrice;
+  const refManufacturing = input.category.medianManufacturing ?? null;
+
   const qprScore = qprLens(
     compositionScore,
     input.price,
-    input.category.avgCompositionScore,
-    input.category.avgPrice,
+    refQuality,
+    refPrice,
+    manufacturingScore,
+    refManufacturing,
   );
 
   // Aggregazione pesata con rinormalizzazione delle componenti null.

@@ -4,6 +4,7 @@ export type {
   TrustLevel,
   UserRole,
   MarketSegment,
+  ComparisonTier,
   ScanType,
   ReportReason,
   ReportStatus,
