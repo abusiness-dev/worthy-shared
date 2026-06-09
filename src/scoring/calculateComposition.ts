@@ -14,13 +14,19 @@ export function calculateCompositionScore(composition: Composition[]): number {
     .map((c) => {
       const fiber = c.fiber.toLowerCase();
 
+      // Coercizione difensiva: una percentage mancante/NaN/<=0 (composizione
+      // malformata da OCR/scraper/JSONB) verrebbe altrimenti propagata come NaN
+      // fino al worthy_score. Scarta l'elemento, allineato al guard SQL.
+      const pct = Number(c.percentage);
+      if (!Number.isFinite(pct) || pct <= 0) return null;
+
       if (isElastane(fiber)) {
-        if (c.percentage <= ELASTANE_IGNORE_THRESHOLD) return null;
-        return { percentage: c.percentage, score: elastaneScore(c.percentage)! };
+        if (pct <= ELASTANE_IGNORE_THRESHOLD) return null;
+        return { percentage: pct, score: elastaneScore(pct)! };
       }
 
       const score = FIBER_SCORES[fiber] ?? DEFAULT_FIBER_SCORE;
-      return { percentage: c.percentage, score };
+      return { percentage: pct, score };
     })
     .filter((x): x is { percentage: number; score: number } => x !== null);
 

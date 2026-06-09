@@ -60,4 +60,30 @@ describe("calculateCompositionScore", () => {
   it("fibra sconosciuta → default 50", () => {
     expect(calculateCompositionScore([{ fiber: "mithril", percentage: 100 }])).toBe(50);
   });
+
+  // Robustezza su composizione malformata (OCR/scraper/JSONB): la percentage non
+  // valida non deve propagarsi come NaN fino al worthy_score. Allineato al guard SQL.
+  it("percentage mancante → fibra scartata (nessuna valida → 50)", () => {
+    // @ts-expect-error percentage assente di proposito (dato malformato)
+    expect(calculateCompositionScore([{ fiber: "cotone" }])).toBe(50);
+  });
+
+  it("percentage 0 o negativa → fibra scartata", () => {
+    expect(
+      calculateCompositionScore([
+        { fiber: "cotone", percentage: 0 },
+        { fiber: "poliestere", percentage: -10 },
+      ]),
+    ).toBe(50);
+  });
+
+  it("mix valido + malformato → considera solo le fibre valide", () => {
+    // solo cotone 100 valido → 72 (poliestere con NaN scartato)
+    expect(
+      calculateCompositionScore([
+        { fiber: "cotone", percentage: 100 },
+        { fiber: "poliestere", percentage: NaN },
+      ]),
+    ).toBe(72);
+  });
 });

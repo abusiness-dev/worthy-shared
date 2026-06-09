@@ -97,14 +97,31 @@ Deno.serve(async (req: Request) => {
   }
 
   // Raccolta dati, sempre filtrata per l'id del chiamante.
+  // Paginazione obbligatoria: PostgREST tronca SILENZIOSAMENTE a ~1000 righe
+  // (max-rows). Senza paginare, l'export di un contributor prolifico (products) o di
+  // un utente con cronologia scansioni voluminosa (scan_history) sarebbe INCOMPLETO
+  // → violazione GDPR Art.20. Loop con .range() fino a esaurimento.
+  const PAGE = 1000;
   const data: Record<string, unknown> = {};
   for (const { table, column } of EXPORT_TABLES) {
-    const { data: rows, error } = await svc.from(table).select("*").eq(column, userId);
-    if (error) {
-      console.error(`export ${table} error`, error);
-      return jsonResponse({ error: "Export failed" }, 500);
+    const rows: unknown[] = [];
+    let offset = 0;
+    while (true) {
+      const { data: page, error } = await svc
+        .from(table)
+        .select("*")
+        .eq(column, userId)
+        .range(offset, offset + PAGE - 1);
+      if (error) {
+        console.error(`export ${table} error`, error);
+        return jsonResponse({ error: "Export failed" }, 500);
+      }
+      const batch = page ?? [];
+      rows.push(...batch);
+      if (batch.length < PAGE) break;
+      offset += PAGE;
     }
-    data[table] = rows ?? [];
+    data[table] = rows;
   }
 
   return jsonResponse(

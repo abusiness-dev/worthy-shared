@@ -47,9 +47,12 @@ export interface WorthyScoreV2Input {
   composition: { fiber: string; percentage: number }[];
   price: number;
   // Riferimento del QPR. Per allinearsi al server (calculate_qpr_cluster) passare
-  // la median del cluster (categoria × comparison_tier): `medianQualityIndex`,
-  // `medianPrice` e, se nota, `medianManufacturing`. Gli `avg*` restano per
-  // retro-compatibilità e vengono usati solo se le median non sono fornite.
+  // la median del CLUSTER (categoria × comparison_tier del brand) presa da
+  // category_tier_aggregates: `medianQualityIndex`, `medianPrice` e, se nota,
+  // `medianManufacturing` (la median manufacturing DELLO STESSO cluster, non della
+  // categoria). Gli `avg*` restano per retro-compatibilità e vengono usati solo se
+  // le median non sono fornite. NB: lo score TS è advisory; il valore canonico è
+  // quello persistito dal trigger server.
   category: {
     avgCompositionScore: number;
     avgPrice: number;

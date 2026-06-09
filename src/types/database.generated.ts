@@ -7,13 +7,51 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.4"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: Database["public"]["Enums"]["audit_action"]
@@ -340,6 +378,24 @@ export type Database = {
           id?: string
           notes?: string | null
           scope?: string
+        }
+        Relationships: []
+      }
+      claude_usage_counter: {
+        Row: {
+          function_name: string
+          n: number
+          window_start: string
+        }
+        Insert: {
+          function_name: string
+          n?: number
+          window_start: string
+        }
+        Update: {
+          function_name?: string
+          n?: number
+          window_start?: string
         }
         Relationships: []
       }
@@ -998,6 +1054,24 @@ export type Database = {
           },
         ]
       }
+      qpr_aggregate_dirty: {
+        Row: {
+          category_id: string
+          comparison_tier: string
+          enqueued_at: string
+        }
+        Insert: {
+          category_id: string
+          comparison_tier: string
+          enqueued_at?: string
+        }
+        Update: {
+          category_id?: string
+          comparison_tier?: string
+          enqueued_at?: string
+        }
+        Relationships: []
+      }
       saved_comparisons: {
         Row: {
           created_at: string
@@ -1475,7 +1549,6 @@ export type Database = {
         Args: { p_product_id: string }
         Returns: number
       }
-      calculate_qpr: { Args: { p_product_id: string }; Returns: number }
       calculate_qpr_cluster: {
         Args: {
           p_brand_id: string
@@ -1508,6 +1581,10 @@ export type Database = {
         Args: { p_product_id: string }
         Returns: Json
       }
+      check_and_record_global_budget: {
+        Args: { p_function: string; p_window_minutes?: number }
+        Returns: boolean
+      }
       check_and_record_throttle: {
         Args: {
           p_function: string
@@ -1521,6 +1598,7 @@ export type Database = {
         Args: { p_comp_score: number; p_manuf_score: number }
         Returns: number
       }
+      drain_qpr_aggregate_dirty: { Args: { p_limit?: number }; Returns: number }
       find_potential_duplicates: {
         Args: { p_brand_id: string; p_name: string; p_product_id: string }
         Returns: {
@@ -1595,6 +1673,7 @@ export type Database = {
         }[]
       }
       is_service_role_or_internal: { Args: never; Returns: boolean }
+      is_valid_ean_or_upc: { Args: { code: string }; Returns: boolean }
       log_security_event: {
         Args: {
           p_blocked_fields: string[]
@@ -1605,6 +1684,10 @@ export type Database = {
         Returns: undefined
       }
       normalize_country_to_iso2: { Args: { raw: string }; Returns: string }
+      purge_old_rows: {
+        Args: { p_batch?: number; p_max_age: string; p_table: unknown }
+        Returns: number
+      }
       recalculate_brand_avg_scores: { Args: never; Returns: undefined }
       recalculate_category_medians: {
         Args: { p_category_id: string }
@@ -1778,6 +1861,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       audit_action: ["insert", "update", "delete", "blocked"],
@@ -1801,3 +1887,4 @@ export const Constants = {
     },
   },
 } as const
+

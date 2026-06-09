@@ -400,10 +400,16 @@ declare function calculateCompositionScore(composition: Composition[]): number;
 
 declare function calculateQPR(compScore: number, price: number, refQuality: number, refPrice: number, manufScore?: number | null, refManufScore?: number | null): number;
 
+/** @deprecated Formula v1 (70/30). Usa {@link calculateWorthyScoreV2}. Vedi F6. */
 interface WorthyScoreInput {
     compositionScore: number;
     qprScore: number;
 }
+/**
+ * @deprecated Scoring v1 (70/30), NON allineato al canonico server (v2 50/25/25).
+ * Usa {@link calculateWorthyScoreV2}. Export mantenuto per retro-compatibilità
+ * (F6: rimozione dopo verifica zero usi in worthy-app/worthy-admin + 30gg stabilità).
+ */
 declare function calculateWorthyScore(params: WorthyScoreInput): WorthyScoreResult;
 
 declare function verdictFromScore(score: number): Verdict;
@@ -1000,7 +1006,11 @@ declare const PRICE_RATIO_MAX = 2.5;
 declare function gendersCompatible(a: Gender | string | null | undefined, b: Gender | string | null | undefined): boolean;
 /** Vicinanza di prezzo [0..1]. Dato mancante ⇒ neutro (0.5), non penalizzante. */
 declare function priceProximity(current: number | null | undefined, alt: number | null | undefined): number;
-/** Similarità di composizione [0..1] basata sulle fibre dominanti. */
+/** Similarità di composizione [0..1] — intersezione di istogramma sull'INTERA
+ *  composizione (non solo le fibre dominanti): per ogni fibra in comune somma
+ *  min(pctA, pctB), normalizzato sul totale minore dei due. Composizioni identiche
+ *  ⇒ 1, disgiunte ⇒ 0; più una composizione è vicina, più il valore è alto.
+ *  Es: cotone70/poly30 vs cotone60/poly40 ⇒ 0.9; vs cotone100 ⇒ 0.7. */
 declare function fiberSimilarity(a: Composition[] | null | undefined, b: Composition[] | null | undefined): number;
 /** Prossimità di segmento [0..1]. Segmento ignoto ⇒ neutro (0.5). */
 declare function segmentProximity(a: MarketSegment | null | undefined, b: MarketSegment | null | undefined): number;

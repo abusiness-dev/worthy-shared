@@ -22,6 +22,19 @@ const MODEL = "claude-sonnet-4-20250514";
 const MAX_BASE64_BYTES = 8 * 1024 * 1024; // 8 MB
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW = "1 minute";
+const CLAUDE_TIMEOUT_MS = 20_000; // hard timeout sulla fetch a Claude
+
+// Client service-role riusato tra invocazioni nello stesso isolate (privo di stato
+// per-request; l'authClient resta invece per-richiesta perché porta il JWT utente).
+let _svc: ReturnType<typeof createClient> | null = null;
+function getServiceClient(url: string, key: string) {
+  if (!_svc) {
+    _svc = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+  return _svc;
+}
 
 const ALLOWED_MEDIA_TYPES = [
   "image/jpeg",
@@ -190,11 +203,9 @@ Deno.serve(async (req: Request) => {
   }
   const userId = userData.user.id;
 
-  // Service-role client per il throttle (check_and_record_throttle è REVOKEd
-  // da anon/authenticated: solo service_role può chiamarlo).
-  const svc = createClient(supabaseUrl, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  // Service-role client per throttle/budget (RPC REVOKEd da anon/authenticated:
+  // solo service_role può chiamarle). Riusato tra invocazioni.
+  const svc = getServiceClient(supabaseUrl, serviceKey);
 
   // Throttle — PRIMA della chiamata costosa a Claude.
   const { data: allowed, error: throttleErr } = await svc.rpc(
@@ -214,39 +225,65 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: "Rate limit exceeded" }, 429);
   }
 
-  // Call Claude API with vision
-  const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": anthropicKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: media_type,
-                data: image_base64,
+  // Cap di spesa GLOBALE + kill-switch (PRIMA del fetch a Claude). Protegge dalla
+  // spesa Anthropic in caso di spike/abuso multi-account (il throttle per-utente
+  // non si aggrega). false ⇒ OCR spento o oltre soglia oraria → 503 temporaneo.
+  const { data: budgetOk, error: budgetErr } = await svc.rpc(
+    "check_and_record_global_budget",
+    { p_function: FUNCTION_NAME, p_window_minutes: 60 },
+  );
+  if (budgetErr) {
+    console.error("Global budget RPC error", budgetErr);
+    return jsonResponse({ error: "OCR temporarily unavailable" }, 503);
+  }
+  if (budgetOk === false) {
+    return jsonResponse({ error: "OCR temporarily unavailable" }, 503);
+  }
+
+  // Call Claude API with vision (hard timeout via AbortController).
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), CLAUDE_TIMEOUT_MS);
+  let claudeResponse: Response;
+  try {
+    claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": anthropicKey,
+        "anthropic-version": "2023-06-01",
+      },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1024,
+        system: SYSTEM_PROMPT,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: media_type,
+                  data: image_base64,
+                },
               },
-            },
-            {
-              type: "text",
-              text: "Analizza questa etichetta ed estrai composizione, paese di produzione e istruzioni di lavaggio.",
-            },
-          ],
-        },
-      ],
-    }),
-  });
+              {
+                type: "text",
+                text: "Analizza questa etichetta ed estrai composizione, paese di produzione e istruzioni di lavaggio.",
+              },
+            ],
+          },
+        ],
+      }),
+    });
+  } catch (e) {
+    console.error("Claude fetch failed/timeout", e);
+    return jsonResponse({ error: "OCR service error" }, 502);
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!claudeResponse.ok) {
     // Dettaglio upstream solo nei log server-side, mai al client.

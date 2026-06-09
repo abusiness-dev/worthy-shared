@@ -30,6 +30,25 @@ const MAX_BASE64_BYTES = 8 * 1024 * 1024; // 8 MB
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW = "1 minute";
 const CANDIDATES_MAX = 5;
+const CLAUDE_TIMEOUT_MS = 20_000; // hard timeout sulla fetch a Claude
+const ALLOWED_MEDIA_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+] as const;
+
+// Client service-role riusato tra invocazioni nello stesso isolate (l'authClient
+// resta per-richiesta perché porta il JWT utente).
+let _svc: ReturnType<typeof createClient> | null = null;
+function getServiceClient(url: string, key: string) {
+  if (!_svc) {
+    _svc = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+  return _svc;
+}
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -105,34 +124,45 @@ async function callClaudeOcr(
   imageBase64: string,
   mediaType: string,
 ): Promise<OcrResult | null> {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 200,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: { type: "base64", media_type: mediaType, data: imageBase64 },
-            },
-            {
-              type: "text",
-              text: "Estrai brand e nome prodotto dal cartellino.",
-            },
-          ],
-        },
-      ],
-    }),
-  });
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), CLAUDE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 200,
+        system: SYSTEM_PROMPT,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: { type: "base64", media_type: mediaType, data: imageBase64 },
+              },
+              {
+                type: "text",
+                text: "Estrai brand e nome prodotto dal cartellino.",
+              },
+            ],
+          },
+        ],
+      }),
+    });
+  } catch (e) {
+    console.error("Claude fetch failed/timeout", e);
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!res.ok) {
     console.error("Claude API error", res.status, await res.text());
@@ -183,7 +213,12 @@ Deno.serve(async (req: Request) => {
   } catch {
     return jsonResponse({ error: "Invalid JSON body" }, 400);
   }
-  const { image_base64, media_type = "image/jpeg" } = body;
+  const { image_base64 } = body;
+  // media_type: valida a runtime contro l'allowlist (il tipo TS non basta su un body JSON).
+  const media_type: string =
+    (ALLOWED_MEDIA_TYPES as readonly string[]).includes(body.media_type ?? "")
+      ? (body.media_type as string)
+      : "image/jpeg";
   if (!image_base64 || typeof image_base64 !== "string") {
     return jsonResponse({ error: "image_base64 is required" }, 400);
   }
@@ -203,10 +238,8 @@ Deno.serve(async (req: Request) => {
   }
   const userId = userData.user.id;
 
-  // Service-role client per cache + RPC
-  const svc = createClient(supabaseUrl, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  // Service-role client per cache + RPC (riusato tra invocazioni).
+  const svc = getServiceClient(supabaseUrl, serviceKey);
 
   // Throttle
   const { data: allowed, error: throttleErr } = await svc.rpc(
@@ -226,8 +259,13 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: "Rate limit exceeded" }, 429);
   }
 
-  // Hash + cache lookup
-  const hash = await sha256Hex(image_base64);
+  // Hash + cache lookup (try/catch: atob lancia su base64 malformato → 400 pulito)
+  let hash: string;
+  try {
+    hash = await sha256Hex(image_base64);
+  } catch {
+    return jsonResponse({ error: "Invalid image encoding" }, 400);
+  }
   let detected: Detected = { brand: "", name: "", confidence: 0 };
   let cached = false;
 
@@ -246,6 +284,20 @@ Deno.serve(async (req: Request) => {
     };
     cached = true;
   } else {
+    // Cap di spesa GLOBALE + kill-switch — SOLO nel ramo cache-miss, così i cache-hit
+    // non consumano budget. false ⇒ OCR spento o oltre soglia oraria → 503 temporaneo.
+    const { data: budgetOk, error: budgetErr } = await svc.rpc(
+      "check_and_record_global_budget",
+      { p_function: FUNCTION_NAME, p_window_minutes: 60 },
+    );
+    if (budgetErr) {
+      console.error("Global budget RPC error", budgetErr);
+      return jsonResponse({ error: "OCR temporarily unavailable" }, 503);
+    }
+    if (budgetOk === false) {
+      return jsonResponse({ error: "OCR temporarily unavailable" }, 503);
+    }
+
     // OCR Claude
     const ocr = await callClaudeOcr(anthropicKey, image_base64, media_type);
     if (ocr) {

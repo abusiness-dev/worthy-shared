@@ -162,12 +162,14 @@ function calculateCompositionScore(composition) {
   if (composition.length === 0) return 50;
   const scored = composition.map((c) => {
     const fiber = c.fiber.toLowerCase();
+    const pct = Number(c.percentage);
+    if (!Number.isFinite(pct) || pct <= 0) return null;
     if (isElastane(fiber)) {
-      if (c.percentage <= ELASTANE_IGNORE_THRESHOLD) return null;
-      return { percentage: c.percentage, score: elastaneScore(c.percentage) };
+      if (pct <= ELASTANE_IGNORE_THRESHOLD) return null;
+      return { percentage: pct, score: elastaneScore(pct) };
     }
     const score = FIBER_SCORES[fiber] ?? DEFAULT_FIBER_SCORE;
-    return { percentage: c.percentage, score };
+    return { percentage: pct, score };
   }).filter((x) => x !== null);
   if (scored.length === 0) return 50;
   const totalPercentage = scored.reduce((sum, c) => sum + c.percentage, 0);
@@ -184,6 +186,9 @@ function computeQualityIndex(compScore, manufScore) {
 function sigmoid(x) {
   return 100 / (1 + Math.exp(-0.025 * (x - 100)));
 }
+function roundHalfAwayFromZero(x) {
+  return Math.sign(x) * Math.round(Math.abs(x));
+}
 function calculateQPR(compScore, price, refQuality, refPrice, manufScore, refManufScore) {
   if (price <= 0 || refPrice <= 0 || refQuality <= 0) return 50;
   const qualityIdx = computeQualityIndex(compScore, manufScore);
@@ -193,7 +198,7 @@ function calculateQPR(compScore, price, refQuality, refPrice, manufScore, refMan
   if (manufScore != null && refManufScore != null) {
     bonus = (manufScore - refManufScore) * 0.3;
   }
-  return Math.min(95, Math.max(15, qpr + Math.round(bonus)));
+  return Math.min(95, Math.max(15, qpr + roundHalfAwayFromZero(bonus)));
 }
 
 // src/scoring/verdictFromScore.ts
@@ -938,19 +943,32 @@ function priceProximity(current, alt) {
   const diff = Math.abs(c - a) / c;
   return Math.max(0, 1 - Math.min(diff, 1));
 }
-function dominantFibers(composition) {
-  if (!composition || composition.length === 0) return [];
-  return [...composition].sort((x, y) => y.percentage - x.percentage).slice(0, 2).map((c) => c.fiber.toLowerCase().trim());
+function fiberMap(composition) {
+  const m = /* @__PURE__ */ new Map();
+  if (!composition) return m;
+  for (const c of composition) {
+    const key = c.fiber?.toLowerCase().trim();
+    if (!key) continue;
+    m.set(key, (m.get(key) ?? 0) + (Number(c.percentage) || 0));
+  }
+  return m;
 }
 function fiberSimilarity(a, b) {
-  const da = dominantFibers(a);
-  const db = dominantFibers(b);
-  const da0 = da[0];
-  const db0 = db[0];
-  if (da0 === void 0 || db0 === void 0) return 0;
-  if (da0 === db0) return 1;
-  if (da.slice(0, 2).includes(db0) || db.slice(0, 2).includes(da0)) return 0.5;
-  return 0;
+  const ma = fiberMap(a);
+  const mb = fiberMap(b);
+  if (ma.size === 0 || mb.size === 0) return 0;
+  let overlap = 0;
+  let totA = 0;
+  for (const [fiber, pa] of ma) {
+    totA += pa;
+    const pb = mb.get(fiber);
+    if (pb != null) overlap += Math.min(pa, pb);
+  }
+  let totB = 0;
+  for (const pb of mb.values()) totB += pb;
+  const denom = Math.min(totA, totB);
+  if (denom <= 0) return 0;
+  return Math.max(0, Math.min(1, overlap / denom));
 }
 function segmentProximity(a, b) {
   const d = segmentDistance(a, b);
@@ -983,6 +1001,9 @@ function meetsQualityFloor(score) {
 function familyKey(p) {
   return p.category_family ?? p.category_id;
 }
+function sameExactCategory(ref, cand) {
+  return cand.category_id != null && cand.category_id === ref.category_id ? 1 : 0;
+}
 function isEligibleAlternative(ref, cand) {
   if (cand.id === ref.id) return false;
   const rf = familyKey(ref);
@@ -997,14 +1018,21 @@ function isEligibleAlternative(ref, cand) {
   if (rp > 0 && cp > 0 && cp / rp > PRICE_RATIO_MAX) return false;
   return true;
 }
+var W_SCORE = 0.4;
+var W_MATERIAL = 0.22;
+var W_CATEGORY = 0.12;
+var W_PRICE = 0.14;
+var W_SEGMENT = 0.05;
+var W_NAME = 0.02;
 function rankAlternative(ref, cand) {
   const scoreNorm = Math.max(0, Math.min(1, cand.worthy_score / 100));
+  const materialSim = fiberSimilarity(ref.composition, cand.composition);
+  const exactCategory = sameExactCategory(ref, cand);
   const priceSim = priceProximity(ref.price, cand.price);
-  const fiberSim = fiberSimilarity(ref.composition, cand.composition);
   const segSim = positionalProximity(ref, cand);
   const nameOv = cand.nameOverlap ?? 0;
   const sameBrand = ref.brand_id != null && cand.brand_id === ref.brand_id ? 1 : 0;
-  return 0.45 * scoreNorm + 0.2 * priceSim + 0.15 * fiberSim + 0.1 * segSim + 0.05 * nameOv + SAME_BRAND_BONUS * sameBrand;
+  return W_SCORE * scoreNorm + W_MATERIAL * materialSim + W_CATEGORY * exactCategory + W_PRICE * priceSim + W_SEGMENT * segSim + W_NAME * nameOv + SAME_BRAND_BONUS * sameBrand;
 }
 function compareAlternatives(ref, a, b) {
   const rb = rankAlternative(ref, b);
@@ -1017,8 +1045,8 @@ function compareAlternatives(ref, a, b) {
   const sb = positionalProximity(ref, b);
   const sa = positionalProximity(ref, a);
   if (sb !== sa) return sb - sa;
-  const ea = a.category_id != null && a.category_id === ref.category_id ? 1 : 0;
-  const eb = b.category_id != null && b.category_id === ref.category_id ? 1 : 0;
+  const ea = sameExactCategory(ref, a);
+  const eb = sameExactCategory(ref, b);
   if (eb !== ea) return eb - ea;
   const fb = fiberSimilarity(ref.composition, b.composition);
   const fa = fiberSimilarity(ref.composition, a.composition);

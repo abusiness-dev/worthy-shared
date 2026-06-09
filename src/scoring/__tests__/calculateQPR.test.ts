@@ -61,6 +61,15 @@ describe("calculateQPR — parità SQL", () => {
     expect(bonusPos).toBeGreaterThan(noBonus);
     expect(bonusPos - noBonus).toBe(9);
   });
+
+  it("bonus manufacturing negativo a mezzo esatto: round half-away-from-zero come PG", () => {
+    // manuf 75 vs ref 80 → bonus (75-80)*0.3 = -1.5. PG round(-1.5) = -2 (away from
+    // zero); Math.round(-1.5) darebbe -1. Stesso manufScore in entrambe → stessa base
+    // qpr, isola il solo arrotondamento del bonus.
+    const negBonus = calculateQPR(70, 100, 70, 100, 75, 80); // bonus -1.5 → -2
+    const noBonus = calculateQPR(70, 100, 70, 100, 75, 75); // bonus 0
+    expect(negBonus - noBonus).toBe(-2);
+  });
 });
 
 describe("computeQualityIndex", () => {

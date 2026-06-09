@@ -79,28 +79,45 @@ export function priceProximity(
   return Math.max(0, 1 - Math.min(diff, 1));
 }
 
-/** Le 2 fibre dominanti (lowercase), ordinate per percentuale. */
-function dominantFibers(composition: Composition[] | null | undefined): string[] {
-  if (!composition || composition.length === 0) return [];
-  return [...composition]
-    .sort((x, y) => y.percentage - x.percentage)
-    .slice(0, 2)
-    .map((c) => c.fiber.toLowerCase().trim());
+/** Composizione normalizzata: fibra (lowercase/trim) → percentuale totale,
+ *  sommando eventuali duplicati. */
+function fiberMap(composition: Composition[] | null | undefined): Map<string, number> {
+  const m = new Map<string, number>();
+  if (!composition) return m;
+  for (const c of composition) {
+    const key = c.fiber?.toLowerCase().trim();
+    if (!key) continue;
+    m.set(key, (m.get(key) ?? 0) + (Number(c.percentage) || 0));
+  }
+  return m;
 }
 
-/** Similarità di composizione [0..1] basata sulle fibre dominanti. */
+/** Similarità di composizione [0..1] — intersezione di istogramma sull'INTERA
+ *  composizione (non solo le fibre dominanti): per ogni fibra in comune somma
+ *  min(pctA, pctB), normalizzato sul totale minore dei due. Composizioni identiche
+ *  ⇒ 1, disgiunte ⇒ 0; più una composizione è vicina, più il valore è alto.
+ *  Es: cotone70/poly30 vs cotone60/poly40 ⇒ 0.9; vs cotone100 ⇒ 0.7. */
 export function fiberSimilarity(
   a: Composition[] | null | undefined,
   b: Composition[] | null | undefined,
 ): number {
-  const da = dominantFibers(a);
-  const db = dominantFibers(b);
-  const da0 = da[0];
-  const db0 = db[0];
-  if (da0 === undefined || db0 === undefined) return 0;
-  if (da0 === db0) return 1;
-  if (da.slice(0, 2).includes(db0) || db.slice(0, 2).includes(da0)) return 0.5;
-  return 0;
+  const ma = fiberMap(a);
+  const mb = fiberMap(b);
+  if (ma.size === 0 || mb.size === 0) return 0;
+
+  let overlap = 0;
+  let totA = 0;
+  for (const [fiber, pa] of ma) {
+    totA += pa;
+    const pb = mb.get(fiber);
+    if (pb != null) overlap += Math.min(pa, pb);
+  }
+  let totB = 0;
+  for (const pb of mb.values()) totB += pb;
+
+  const denom = Math.min(totA, totB);
+  if (denom <= 0) return 0;
+  return Math.max(0, Math.min(1, overlap / denom));
 }
 
 /** Prossimità di segmento [0..1]. Segmento ignoto ⇒ neutro (0.5). */
@@ -151,6 +168,13 @@ function familyKey(p: AlternativeProduct): string | null {
   return p.category_family ?? p.category_id;
 }
 
+/** 1 se il candidato è nella STESSA categoria esatta del riferimento (oltre alla
+ *  famiglia, già garantita dall'ammissibilità), altrimenti 0. Usato nel ranking
+ *  per far emergere il "davvero-simile" (un blazer prima di un piumino). */
+function sameExactCategory(ref: AlternativeProduct, cand: AlternativeProduct): number {
+  return cand.category_id != null && cand.category_id === ref.category_id ? 1 : 0;
+}
+
 // ── Ammissibilità (hard-filter) ──────────────────────────────
 // Un candidato è un'alternativa valida solo se TUTTE le condizioni valgono.
 export function isEligibleAlternative(
@@ -186,25 +210,37 @@ export function isEligibleAlternative(
 }
 
 // ── Ranking ──────────────────────────────────────────────────
-// Tra i SOLI ammissibili. Lo score pesa di più (0.45) ed è anche hard-filter a monte,
-// quindi la qualità non compete più con fibra/prezzo: questi sono pertinenza/tie-break.
+// Tra i SOLI ammissibili (stessa famiglia, score >= riferimento, ecc.). Lo score
+// resta il criterio primario; poi viene la SOMIGLIANZA del capo: materiali simili
+// (intera composizione) e stessa categoria ESATTA — così un blazer mostra prima
+// altri blazer con composizione vicina, e solo dopo gli altri capispalla.
+// Pesi core (somma 0.95); lo stesso-brand è un bonus additivo minimo (0.05).
+const W_SCORE = 0.40;     // qualità (anche hard-filtrata >= riferimento)
+const W_MATERIAL = 0.22;  // somiglianza di composizione/materiali
+const W_CATEGORY = 0.12;  // stessa categoria esatta (oltre alla famiglia)
+const W_PRICE = 0.14;     // vicinanza di prezzo
+const W_SEGMENT = 0.05;   // prossimità di lega/posizionamento
+const W_NAME = 0.02;      // overlap del nome (debole)
+
 export function rankAlternative(
   ref: AlternativeProduct,
   cand: AlternativeCandidate,
 ): number {
   const scoreNorm = Math.max(0, Math.min(1, cand.worthy_score / 100));
+  const materialSim = fiberSimilarity(ref.composition, cand.composition);
+  const exactCategory = sameExactCategory(ref, cand);
   const priceSim = priceProximity(ref.price, cand.price);
-  const fiberSim = fiberSimilarity(ref.composition, cand.composition);
   const segSim = positionalProximity(ref, cand);
   const nameOv = cand.nameOverlap ?? 0;
   const sameBrand = ref.brand_id != null && cand.brand_id === ref.brand_id ? 1 : 0;
 
   return (
-    0.45 * scoreNorm +
-    0.2 * priceSim +
-    0.15 * fiberSim +
-    0.1 * segSim +
-    0.05 * nameOv +
+    W_SCORE * scoreNorm +
+    W_MATERIAL * materialSim +
+    W_CATEGORY * exactCategory +
+    W_PRICE * priceSim +
+    W_SEGMENT * segSim +
+    W_NAME * nameOv +
     SAME_BRAND_BONUS * sameBrand
   );
 }
@@ -230,8 +266,8 @@ function compareAlternatives(
   if (sb !== sa) return sb - sa;
 
   // Stessa category_id esatta prima (anche quando matchano per famiglia).
-  const ea = a.category_id != null && a.category_id === ref.category_id ? 1 : 0;
-  const eb = b.category_id != null && b.category_id === ref.category_id ? 1 : 0;
+  const ea = sameExactCategory(ref, a);
+  const eb = sameExactCategory(ref, b);
   if (eb !== ea) return eb - ea;
 
   const fb = fiberSimilarity(ref.composition, b.composition);

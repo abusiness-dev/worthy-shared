@@ -15,6 +15,13 @@ function sigmoid(x: number): number {
   return 100 / (1 + Math.exp(-0.025 * (x - 100)));
 }
 
+// Arrotondamento "half away from zero" come round() di Postgres. Math.round() è
+// invece "half toward +Inf" e diverge sui mezzi NEGATIVI esatti (es. -1.5 → -1 in
+// JS, -2 in PG): allineiamo il bonus manufacturing (che può essere negativo).
+function roundHalfAwayFromZero(x: number): number {
+  return Math.sign(x) * Math.round(Math.abs(x));
+}
+
 // QPR cluster-based — allineato 1:1 a calculate_qpr_cluster (SQL v6).
 //
 // Confronta il quality_index/prezzo del prodotto con il riferimento del cluster
@@ -53,5 +60,5 @@ export function calculateQPR(
     bonus = (manufScore - refManufScore) * 0.3;
   }
 
-  return Math.min(95, Math.max(15, qpr + Math.round(bonus)));
+  return Math.min(95, Math.max(15, qpr + roundHalfAwayFromZero(bonus)));
 }

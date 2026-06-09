@@ -122,6 +122,33 @@ describe("Worthy Score v2 - scenari simbolo", () => {
       Math.min(100, (without.breakdown.lenses.manufacturing.score ?? 0) + 8),
     );
   });
+
+  it("scenario 9 - bonus QPR vs medianManufacturing del cluster (ramo end-to-end)", () => {
+    // Esercita il ramo bonus del QPR (refManufacturing non-null), prima non coperto
+    // end-to-end: stesso prodotto, cambia solo la median manufacturing del cluster.
+    // Ref manuf BASSA → scarto positivo → QPR (e finale) >= ref manuf ALTA.
+    const base: WorthyScoreV2Input = {
+      composition: [{ fiber: "cotton", percentage: 100 }],
+      price: 80,
+      category: {
+        avgCompositionScore: 60,
+        avgPrice: 60,
+        medianQualityIndex: 70,
+        medianPrice: 80,
+        medianManufacturing: 50,
+      },
+      manufacturing: { productionCountry: "IT" }, // manufacturing lens non-null
+    };
+    const refLow = calculateWorthyScoreV2(base); // bonus positivo (manuf prodotto > 50)
+    const refHigh = calculateWorthyScoreV2({
+      ...base,
+      category: { ...base.category, medianManufacturing: 95 }, // bonus negativo
+    });
+    const qprLow = refLow.breakdown.lenses.qpr.score ?? 0;
+    const qprHigh = refHigh.breakdown.lenses.qpr.score ?? 0;
+    expect(qprLow).toBeGreaterThan(qprHigh);
+    expect(refLow.score).toBeGreaterThanOrEqual(refHigh.score);
+  });
 });
 
 describe("Worthy Score v2 - graceful degradation", () => {

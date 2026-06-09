@@ -6,6 +6,7 @@ import {
   isAlreadyGood,
   meetsQualityFloor,
   segmentProximity,
+  fiberSimilarity,
   gendersCompatible,
   type AlternativeProduct,
   type AlternativeCandidate,
@@ -182,6 +183,76 @@ describe("pickBestAlternatives — ranking e scelta", () => {
     const run1 = pickBestAlternatives(r, cands).map((c) => c.id);
     const run2 = pickBestAlternatives(r, [...cands].reverse()).map((c) => c.id);
     expect(run1).toEqual(run2);
+  });
+});
+
+describe("ranking — categoria esatta prioritaria (stessa famiglia)", () => {
+  it("a parità di score, la categoria ESATTA batte la stessa-famiglia-diversa-categoria", () => {
+    // Riferimento blazer (famiglia giacche). Entrambi ammissibili (stessa famiglia),
+    // stesso score e stessa composizione → vince chi è blazer esatto.
+    const r = ref({ category_id: "blazer", category_family: "giacche", worthy_score: 60 });
+    const esatta = cand({ id: "blazer2", category_id: "blazer", category_family: "giacche", worthy_score: 70 });
+    const famiglia = cand({ id: "parka", category_id: "parka", category_family: "giacche", worthy_score: 70 });
+    expect(bestAlternative(r, [famiglia, esatta])?.id).toBe("blazer2");
+  });
+
+  it("a parità di score e categoria, vince la composizione più vicina", () => {
+    const r = ref({
+      category_id: "blazer",
+      category_family: "giacche",
+      worthy_score: 60,
+      composition: [
+        { fiber: "lana", percentage: 70 },
+        { fiber: "poliestere", percentage: 30 },
+      ],
+    });
+    const vicino = cand({
+      id: "vicino",
+      category_id: "blazer",
+      category_family: "giacche",
+      worthy_score: 70,
+      composition: [
+        { fiber: "lana", percentage: 70 },
+        { fiber: "poliestere", percentage: 30 },
+      ],
+    });
+    const lontano = cand({
+      id: "lontano",
+      category_id: "blazer",
+      category_family: "giacche",
+      worthy_score: 70,
+      composition: [{ fiber: "poliestere", percentage: 100 }],
+    });
+    expect(bestAlternative(r, [lontano, vicino])?.id).toBe("vicino");
+  });
+
+  it("i materiali NON scavalcano lo score gate: un candidato sotto il riferimento è escluso", () => {
+    const r = ref({ category_id: "blazer", worthy_score: 80, composition: COTONE });
+    const sameMatLower = cand({ category_id: "blazer", worthy_score: 70, composition: COTONE });
+    expect(isEligibleAlternative(r, sameMatLower)).toBe(false);
+    expect(bestAlternative(r, [sameMatLower])).toBeNull();
+  });
+});
+
+describe("fiberSimilarity — intera composizione", () => {
+  it("identica = 1, disgiunta = 0, parziale in mezzo", () => {
+    const cot = [{ fiber: "cotone", percentage: 100 }];
+    const cotPoly = [
+      { fiber: "cotone", percentage: 70 },
+      { fiber: "poliestere", percentage: 30 },
+    ];
+    expect(fiberSimilarity(cot, cot)).toBe(1);
+    expect(fiberSimilarity(cot, POLIESTERE)).toBe(0);
+    expect(fiberSimilarity(cotPoly, cot)).toBeCloseTo(0.7, 5);
+    expect(fiberSimilarity(cotPoly, [
+      { fiber: "cotone", percentage: 60 },
+      { fiber: "poliestere", percentage: 40 },
+    ])).toBeCloseTo(0.9, 5);
+  });
+
+  it("composizione mancante ⇒ 0", () => {
+    expect(fiberSimilarity(null, COTONE)).toBe(0);
+    expect(fiberSimilarity(COTONE, undefined)).toBe(0);
   });
 });
 
