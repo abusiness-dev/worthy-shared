@@ -29,3 +29,11 @@ npm-debug.log*
 
 # Coverage
 coverage/
+
+# Report interni / artefatti di analisi — non pubblicati (repo pubblica)
+REVIEW_REPORT.md
+RLS_AUDIT_REPORT.md
+SCHEMA_DRIFT_REPORT.md
+FIXES_APPLIED.md
+test_results_v2.log
+analysis/
